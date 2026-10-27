@@ -10,3 +10,10 @@ p { line-height: 1.6; }
 .workshop { padding: 20px; border: 1px solid #b8cdb9; border-radius: 12px; background: #fff; }
 .workshop h3 { margin-top: 0; }
 .workshop p:last-child { margin-bottom: 0; }
+.registration-form { display: grid; gap: 12px; margin-top: 20px; }
+.registration-form label { display: grid; gap: 6px; font-weight: 600; }
+.registration-form input { box-sizing: border-box; width: 100%; padding: 10px 12px; border: 1px solid #9aafa0; border-radius: 8px; font: inherit; }
+button { padding: 11px 16px; border: 0; border-radius: 8px; background: #163f32; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+button:disabled { cursor: wait; opacity: .65; }
+.notice { padding: 12px; border-radius: 8px; background: #e4f2e4; }
+.error { padding: 12px; border-radius: 8px; background: #fbe9e6; color: #8a2418; }
