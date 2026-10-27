@@ -1,0 +1,7 @@
+:root { font-family: system-ui, sans-serif; color: #163f32; background: #f3f5ed; font-synthesis: none; }
+body { margin: 0; min-width: 320px; }
+main { max-width: 760px; margin: 15vh auto; padding: 32px; }
+h1 { font-size: clamp(2.5rem, 7vw, 4.5rem); line-height: 1.05; letter-spacing: -.04em; }
+p { line-height: 1.6; }
+.eyebrow { font-size: .75rem; letter-spacing: .15em; }
+.status { margin-top: 32px; padding: 16px 20px; border: 1px solid #b8cdb9; border-radius: 12px; background: #fff; }
