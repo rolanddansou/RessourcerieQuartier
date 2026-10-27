@@ -2,8 +2,10 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.core import mail
+from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.utils import timezone
+from django.urls import reverse
 
 from .models import Atelier, Inscription
 
@@ -166,3 +168,51 @@ class AteliersApiTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+
+class AtelierAdminTests(TestCase):
+    def setUp(self):
+        self.admin = get_user_model().objects.create_superuser(
+            username="gestionnaire",
+            email="gestionnaire@example.com",
+            password="test-password",
+        )
+        self.atelier = Atelier.objects.create(
+            nom="Réparation vélo",
+            date=timezone.now() + timedelta(days=1),
+            lieu="Salle A",
+            places_disponible=5,
+            places_reservees=1,
+        )
+        Inscription.objects.create(
+            atelier=self.atelier,
+            nom="Camille",
+            email="camille@example.com",
+        )
+
+    def test_workshop_tracking_is_only_available_to_authorized_users(self):
+        url = reverse("admin:ateliers_atelier_changelist")
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+
+        self.client.force_login(self.admin)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Inscrits actifs")
+        self.assertContains(response, "Places restantes")
+        atelier_admin = response.context["cl"].model_admin
+        atelier = response.context["cl"].result_list[0]
+        self.assertEqual(atelier_admin.inscrits_actifs(atelier), 1)
+        self.assertEqual(atelier_admin.places_restantes(atelier), 4)
+
+    def test_workshop_detail_shows_registrant_list(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.get(
+            reverse("admin:ateliers_atelier_change", args=[self.atelier.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "camille@example.com")

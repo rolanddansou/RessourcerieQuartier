@@ -34,7 +34,7 @@ Administration : http://127.0.0.1:8000/admin/ ; créer un compte avec `.\.venv\S
 
 ## Gestion des ateliers
 
-Dans l’administration Django, ouvrir **Ateliers** pour créer, modifier ou supprimer un atelier. Pour une annulation, sélectionner un ou plusieurs ateliers et utiliser l’action **Annuler les ateliers sélectionnés** : ils restent enregistrés dans l’administration mais ne sont plus renvoyés par l’API publique `/api/ateliers/`. Les ateliers actifs apparaissent sur la page d’accueil du frontend.
+Dans l’administration Django, ouvrir **Ateliers** pour créer, modifier ou supprimer un atelier. La liste affiche la capacité, le nombre d’inscrits actifs et les places restantes ; ouvrir un atelier affiche le détail des inscriptions. Ces informations sont accessibles après connexion à un compte administrateur autorisé. Pour une annulation, sélectionner un ou plusieurs ateliers et utiliser l’action **Annuler les ateliers sélectionnés** : ils restent enregistrés dans l’administration mais ne sont plus renvoyés par l’API publique `/api/ateliers/`. Les ateliers actifs apparaissent sur la page d’accueil du frontend.
 
 Le public peut s’inscrire à un atelier avec son nom et son courriel. Une confirmation contenant un lien unique permet de consulter puis confirmer la désinscription ; la place est alors libérée. Les inscriptions sont consultables dans l’administration. En local, les courriels sont affichés dans le terminal Django. Pour envoyer de vrais courriels, configurer `DJANGO_EMAIL_BACKEND` sur `django.core.mail.backends.smtp.EmailBackend`, ainsi que `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS` et `DEFAULT_FROM_EMAIL`. `FRONTEND_URL` définit le domaine du lien d’annulation (par défaut `http://127.0.0.1:5173`).
 
