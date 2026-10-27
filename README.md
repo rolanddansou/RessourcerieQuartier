@@ -32,11 +32,17 @@ Ouvrir http://127.0.0.1:5173. La page vérifie la connexion à Django via `/api/
 
 Administration : http://127.0.0.1:8000/admin/ ; créer un compte avec `.\.venv\Scripts\python backend/manage.py createsuperuser`.
 
+## Gestion des ateliers
+
+Dans l’administration Django, ouvrir **Ateliers** pour créer, modifier ou supprimer un atelier. Pour une annulation, sélectionner un ou plusieurs ateliers et utiliser l’action **Annuler les ateliers sélectionnés** : ils restent enregistrés dans l’administration mais ne sont plus renvoyés par l’API publique `/api/ateliers/`. Les ateliers actifs apparaissent sur la page d’accueil du frontend.
+
+Les notifications par courriel des personnes inscrites ne sont pas encore prises en charge : le projet ne possède pas encore de gestion des inscriptions ni de configuration d’envoi d’emails.
+
 ## Vérification
 
 ```powershell
 .\.venv\Scripts\python backend/manage.py check
-.\.venv\Scripts\python backend/manage.py test config
+.\.venv\Scripts\python backend/manage.py test config ateliers
 Push-Location frontend
 npm.cmd run build
 Pop-Location
