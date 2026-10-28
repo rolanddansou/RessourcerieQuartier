@@ -21,7 +21,7 @@ from .views import health, login_app, management_app, planning_app
 from .auth import SharedLoginView
 
 urlpatterns = [
-    path('', RedirectView.as_view(pattern_name='login-app', permanent=False)),
+    path('', RedirectView.as_view(pattern_name='planning-app', permanent=False)),
     path('login/', login_app, name='login-app'),
     path('gestion/', management_app, name='management-app'),
     path('planning/', RedirectView.as_view(pattern_name='planning-app', permanent=False)),
@@ -32,6 +32,5 @@ urlpatterns = [
     path('api/health/', health, name='health'),
     path('api/ateliers/', include('ateliers.urls')),
     path('admin/', admin.site.urls),
-    path("api/", include("comptes.urls")),
     path("api/", include("informations.urls")),
 ]

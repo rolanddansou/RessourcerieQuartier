@@ -22,11 +22,11 @@ class UserDirectory(Protocol):
 
 class DjangoUserDirectory:
     def identity(self, user):
-        roles = []
         account_role = getattr(user, 'role', '')
+        roles = []
         if user.is_superuser or account_role == 'admin':
             roles.append('admin')
-        if account_role == 'benevole' or user.groups.filter(name='benevole').exists():
+        elif account_role == 'benevole' or user.groups.filter(name='benevole').exists():
             roles.append('benevole')
         return Identity(str(user.pk), user.get_full_name() or user.get_username(), tuple(roles), user.is_active)
 

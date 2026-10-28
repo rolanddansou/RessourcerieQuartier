@@ -1,23 +1,14 @@
 import { StrictMode, useEffect, useState, type FormEvent } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
-import { App } from './App'
+import './brand.css'
+import './ateliers.css'
+import { App as SiteApp } from './App'
 import Login from './pages/login'
 import Espace from './pages/espace'
-
-function Root() {
-  const path = window.location.pathname
-  if (path === '/login') return <Login />
-  if (path === '/espace') return <Espace />
-  return <App />
-}
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Root />
-  </StrictMode>
-)
-import './brand.css'
+import PlanningApp from './PlanningApp'
+import Gestion from './pages/gestion'
+import logo from './assets/logo.png'
 
 type AtelierInscription = {
   id: number
@@ -72,44 +63,75 @@ function AtelierCard({
     }
   }
 
+  const date = new Date(atelier.date)
+  const jour = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  const heure = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+
   return (
-    <article className="workshop" key={atelier.id}>
-      <h3>{atelier.nom}</h3>
-      <p>{new Date(atelier.date).toLocaleString('fr-FR', {
-        dateStyle: 'long',
-        timeStyle: 'short',
-      })}</p>
-      {atelier.description ? <p>{atelier.description}</p> : null}
-      <p>{atelier.lieu} · {atelier.places_disponible} place(s) disponible(s)</p>
+    <article className="atelier-card">
+      <div className="atelier-card-heading">
+        <div className="atelier-date-badge" aria-label={jour}>
+          <span className="atelier-date-day">{date.toLocaleDateString('fr-FR', { day: '2-digit' })}</span>
+          <span className="atelier-date-month">{date.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', '')}</span>
+        </div>
+        <div className="atelier-card-title">
+          <span className="atelier-card-label">Atelier participatif</span>
+          <h3>{atelier.nom}</h3>
+        </div>
+      </div>
+
+      <p className="atelier-card-description">
+        {atelier.description || 'Un moment convivial pour apprendre, réparer et partager des savoir-faire.'}
+      </p>
+
+      <div className="atelier-card-details">
+        <p><span aria-hidden="true">◷</span><span>{jour} · {heure}</span></p>
+        <p><span aria-hidden="true">⌖</span><span>{atelier.lieu}</span></p>
+      </div>
+
+      <div className={`atelier-capacity${atelier.places_disponible === 0 ? ' is-full' : ''}`}>
+        <span className="atelier-capacity-dot" aria-hidden="true" />
+        {atelier.places_disponible > 0
+          ? `${atelier.places_disponible} place${atelier.places_disponible > 1 ? 's' : ''} disponible${atelier.places_disponible > 1 ? 's' : ''}`
+          : 'Atelier complet'}
+      </div>
+
       {atelier.places_disponible > 0 ? (
-        <form className="registration-form" onSubmit={inscrire}>
+        <form className="atelier-form" onSubmit={inscrire}>
+          <h4>Réserver ma place</h4>
           <label>
-            Nom
+            Votre nom
             <input
               autoComplete="name"
               maxLength={200}
               onChange={(event) => setNom(event.target.value)}
+              placeholder="Prénom et nom"
               required
               value={nom}
             />
           </label>
           <label>
-            Courriel
+            Votre adresse courriel
             <input
               autoComplete="email"
               onChange={(event) => setEmail(event.target.value)}
+              placeholder="vous@exemple.fr"
               required
               type="email"
               value={email}
             />
           </label>
-          <button disabled={envoi} type="submit">
-            {envoi ? 'Inscription en cours…' : 'S’inscrire'}
+          <button className="atelier-submit" disabled={envoi} type="submit">
+            {envoi ? 'Inscription en cours…' : 'Je m’inscris'}
+            {!envoi && <span aria-hidden="true">→</span>}
           </button>
         </form>
-      ) : <p>Atelier complet</p>}
-      {message ? <p className="notice" role="status">{message}</p> : null}
-      {erreur ? <p className="error" role="alert">{erreur}</p> : null}
+      ) : (
+        <p className="atelier-full-note">Les inscriptions pour cet atelier sont complètes.</p>
+      )}
+
+      {message ? <p className="atelier-feedback is-success" role="status">{message}</p> : null}
+      {erreur ? <p className="atelier-feedback is-error" role="alert">{erreur}</p> : null}
     </article>
   )
 }
@@ -179,30 +201,24 @@ function PageDesinscription({ token }: { token: string }) {
 }
 
 function PageAteliers() {
-  const [status, setStatus] = useState('Connexion au backend…')
   const [ateliers, setAteliers] = useState<Atelier[]>([])
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const controller = new AbortController()
     async function chargerAteliers() {
       try {
-        const [healthResponse, ateliersResponse] = await Promise.all([
-          fetch('/api/health/', { signal: controller.signal }),
-          fetch('/api/ateliers/', { signal: controller.signal }),
-        ])
-        if (!healthResponse.ok || !ateliersResponse.ok) {
-          throw new Error('API indisponible')
-        }
-        const health = await healthResponse.json()
+        const ateliersResponse = await fetch('/api/ateliers/', { signal: controller.signal })
+        if (!ateliersResponse.ok) throw new Error('Impossible de charger les ateliers.')
         const data: Atelier[] = await ateliersResponse.json()
-        setStatus(health.status === 'ok' ? 'Django est connecté ✓' : 'Réponse API inattendue')
         setAteliers(data)
       } catch {
         if (!controller.signal.aborted) {
-          setStatus('Backend indisponible : démarrez Django sur le port 8000.')
           setError('Impossible de charger les ateliers. Réessayez plus tard.')
         }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false)
       }
     }
     void chargerAteliers()
@@ -210,36 +226,115 @@ function PageAteliers() {
   }, [])
 
   return (
-    <main>
-      <p className="eyebrow">RÉEMPLOYER · PARTAGER · TRANSMETTRE</p>
-      <h1>Ressourcerie Quartier</h1>
-      <p>Découvrez les ateliers proposés par la ressourcerie.</p>
-      <p className="status" role="status">{status}</p>
-      <section aria-labelledby="ateliers-title">
-        <h2 id="ateliers-title">Les prochains ateliers</h2>
-        {error ? <p role="alert">{error}</p> : null}
-        {!error && ateliers.length === 0 ? <p>Aucun atelier n’est programmé pour le moment.</p> : null}
-        <div className="workshop-list">
-          {ateliers.map((atelier) => (
-            <AtelierCard
-              atelier={atelier}
-              key={atelier.id}
-              onInscription={() => setAteliers((actuels) => actuels.map((actuel) => (
-                actuel.id === atelier.id
-                  ? { ...actuel, places_disponible: Math.max(0, actuel.places_disponible - 1) }
-                  : actuel
-              )))}
-            />
-          ))}
-        </div>
-      </section>
-    </main>
+    <div className="atelier-page">
+      <header className="atelier-header">
+        <a className="atelier-brand" href="/" aria-label="Retour à l’accueil de la Ressourcerie">
+          <img src={logo} alt="" />
+          <span>La Ressourcerie<small>du Quartier</small></span>
+        </a>
+        <nav className="atelier-nav" aria-label="Navigation principale">
+          <a href="/">Accueil</a>
+          <a href="/login?espace=benevole">Espace bénévole</a>
+          <a className="atelier-nav-admin" href="/login?espace=admin">Espace admin</a>
+        </nav>
+      </header>
+
+      <main className="atelier-main">
+        <section className="atelier-hero" aria-labelledby="ateliers-title">
+          <div className="atelier-hero-copy">
+            <p className="atelier-eyebrow"><span /> Réparer · apprendre · partager</p>
+            <h1 id="ateliers-title">Les ateliers<br /><em>du quartier</em></h1>
+            <p className="atelier-hero-description">
+              Des moments simples pour apprendre à réparer, fabriquer et transmettre des savoir-faire, ensemble.
+            </p>
+            <a className="atelier-hero-link" href="#prochains-ateliers">
+              Découvrir les prochains ateliers <span aria-hidden="true">↓</span>
+            </a>
+          </div>
+          <div className="atelier-hero-art" aria-hidden="true">
+            <div className="atelier-art-orbit" />
+            <div className="atelier-art-card atelier-art-card-main"><span>🔧</span><strong>On répare</strong><small>ensemble</small></div>
+            <div className="atelier-art-card atelier-art-card-top"><span>🪴</span><strong>On apprend</strong></div>
+            <div className="atelier-art-card atelier-art-card-bottom"><span>🪑</span><strong>On partage</strong></div>
+          </div>
+        </section>
+
+        <section className="atelier-list-section" id="prochains-ateliers" aria-labelledby="atelier-list-title">
+          <div className="atelier-section-heading">
+            <div>
+              <p className="atelier-eyebrow">À VOTRE AGENDA</p>
+              <h2 id="atelier-list-title">Les prochains rendez-vous</h2>
+              <p>Choisissez un atelier et réservez votre place en quelques instants.</p>
+            </div>
+            {!loading && !error && ateliers.length > 0 && (
+              <span className="atelier-count">{ateliers.length} atelier{ateliers.length > 1 ? 's' : ''}</span>
+            )}
+          </div>
+
+          {loading && (
+            <div className="atelier-grid" aria-label="Chargement des ateliers" aria-busy="true">
+              {[1, 2, 3].map((item) => <div className="atelier-skeleton" key={item} />)}
+            </div>
+          )}
+          {error && (
+            <div className="atelier-empty atelier-empty-error" role="alert">
+              <span className="atelier-empty-icon" aria-hidden="true">!</span>
+              <h3>Les ateliers ne sont pas disponibles pour le moment</h3>
+              <p>{error}</p>
+              <button className="atelier-empty-button" onClick={() => window.location.reload()} type="button">Réessayer</button>
+            </div>
+          )}
+          {!loading && !error && ateliers.length === 0 && (
+            <div className="atelier-empty">
+              <span className="atelier-empty-icon" aria-hidden="true">✳</span>
+              <h3>Les prochains ateliers se préparent</h3>
+              <p>Aucune date n’est publiée pour l’instant. Revenez bientôt découvrir le programme.</p>
+              <a className="atelier-empty-link" href="/">Découvrir la Ressourcerie <span aria-hidden="true">→</span></a>
+            </div>
+          )}
+          {!loading && !error && ateliers.length > 0 && (
+            <div className="atelier-grid">
+              {ateliers.map((atelier) => (
+                <AtelierCard
+                  atelier={atelier}
+                  key={atelier.id}
+                  onInscription={() => setAteliers((actuels) => actuels.map((actuel) => (
+                    actuel.id === atelier.id
+                      ? { ...actuel, places_disponible: Math.max(0, actuel.places_disponible - 1) }
+                      : actuel
+                  )))}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <aside className="atelier-contact">
+          <span className="atelier-contact-icon" aria-hidden="true">✦</span>
+          <div><strong>Envie de participer ?</strong><p>Les ateliers sont ouverts à toutes et à tous. Il suffit de réserver votre place ci-dessus.</p></div>
+          <a href="/">En savoir plus sur la Ressourcerie <span aria-hidden="true">→</span></a>
+        </aside>
+      </main>
+
+      <footer className="atelier-footer">
+        <span>La Ressourcerie du Quartier</span>
+        <span>Réemployer · Partager · Transmettre</span>
+      </footer>
+    </div>
   )
 }
 
-function App() {
-  const match = window.location.pathname.match(/^\/desinscription\/([0-9a-f-]+)\/?$/i)
-  return match ? <PageDesinscription token={match[1]} /> : <PageAteliers />
+function Root() {
+  const path = window.location.pathname.replace(/\/+$/, '').toLowerCase() || '/'
+  const desinscription = path.match(/^\/desinscription\/([0-9a-f-]+)$/i)
+
+  if (path === '/login') return <Login />
+  if (path === '/espace') return <Espace />
+  if (path === '/planning' || path.startsWith('/admin/planning')) return <PlanningApp />
+  if (path === '/gestion') return <Gestion />
+  if (desinscription) return <PageDesinscription token={desinscription[1]} />
+  if (path === '/ateliers') return <PageAteliers />
+  return <SiteApp />
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
+createRoot(document.getElementById('root')!).render(<StrictMode><Root /></StrictMode>)

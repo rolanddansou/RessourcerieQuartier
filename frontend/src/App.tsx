@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import logo from './assets/logo.png'
 
 // Types pour l'API
 interface DonItem {
@@ -398,8 +399,8 @@ export function App() {
         <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
 
           {/* Logo + titre */}
-          <button onClick={() => setCurrentRoute('/')} className="flex items-center gap-2.5 hover:opacity-80 transition">
-            <img src="/logo.jpg" alt="La Ressourcerie du Quartier"
+          <a href="/" className="flex items-center gap-2.5 text-left no-underline hover:opacity-80 transition">
+            <img src={logo} alt="La Ressourcerie du Quartier"
                  className="h-10 w-auto rounded-lg object-cover" />
             <div className="hidden sm:block text-left">
               <p className="text-[10px] font-semibold uppercase tracking-widest"
@@ -407,11 +408,12 @@ export function App() {
                 {currentRoute === '/' ? 'Site public' : currentRoute === '/benevole' ? 'Espace Bénévoles' : 'Espace Martine'}
               </p>
             </div>
-          </button>
+          </a>
 
           {/* Nav desktop (vitrine seulement) */}
           {currentRoute === '/' && (
             <nav className="hidden md:flex items-center gap-6 text-xs font-semibold" style={{ color: c.brun }}>
+              <a href="/ateliers" className="hover:opacity-75">🔧 Ateliers</a>
               <a href="#horaires" className="hover:opacity-75">⏰ Horaires</a>
               <a href="#dons" className="hover:opacity-75">📦 Guide des dons</a>
             </nav>
@@ -419,22 +421,22 @@ export function App() {
 
           {/* Actions droite */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentRoute('/admin')}
+            <a
+              href="/login?espace=admin"
               className="hidden md:flex px-3 py-1.5 rounded-lg text-xs font-bold border items-center gap-1.5"
               style={{ background: c.jauneCl, color: c.brun, borderColor: c.jaune }}
             >
               👑 Espace Martine
-            </button>
-            <button
-              onClick={() => setCurrentRoute('/benevole')}
+            </a>
+            <a
+              href="/login?espace=benevole"
               className="px-3 py-1.5 rounded-lg text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5"
               style={{ background: c.vert }}
             >
               <span>🤝</span>
               <span className="hidden sm:inline">Espace Bénévoles</span>
               <span className="sm:hidden">Bénévoles</span>
-            </button>
+            </a>
             {/* Burger mobile */}
             <button
               onClick={() => setIsDrawerOpen(!isDrawerOpen)}
@@ -455,7 +457,7 @@ export function App() {
           <div onClick={() => setIsDrawerOpen(false)} className="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-50" />
           <div className="fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col p-5 gap-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <img src="/logo.jpg" alt="logo" className="h-9 rounded-md" />
+              <img src={logo} alt="La Ressourcerie du Quartier" className="h-9 object-contain" />
               <button onClick={() => setIsDrawerOpen(false)} style={{ color: c.brun }}>✕</button>
             </div>
             <button onClick={() => { setCurrentRoute('/'); setIsDrawerOpen(false) }}
@@ -463,16 +465,21 @@ export function App() {
                     style={{ background: c.vertClair, color: c.vert }}>
               🏠 Accueil &amp; Horaires
             </button>
-            <button onClick={() => { setCurrentRoute('/benevole'); setIsDrawerOpen(false) }}
+            <a href="/ateliers"
+                    className="w-full text-left p-3 rounded-xl text-xs font-bold border border-stone-200"
+                    style={{ background: c.jauneCl, color: c.brun }}>
+              🔧 Les ateliers
+            </a>
+            <a href="/login?espace=benevole"
                     className="w-full text-left p-3 rounded-xl text-white text-xs font-bold shadow-sm"
                     style={{ background: c.vert }}>
               🤝 Espace Bénévoles
-            </button>
-            <button onClick={() => { setCurrentRoute('/admin'); setIsDrawerOpen(false) }}
+            </a>
+            <a href="/login?espace=admin"
                     className="w-full text-left p-3 rounded-xl text-xs font-bold border border-stone-200"
                     style={{ background: c.jauneCl, color: c.brun }}>
               👑 Espace Martine (Admin)
-            </button>
+            </a>
           </div>
         </>
       )}
@@ -514,6 +521,11 @@ export function App() {
                   on vous y apprend à réparer, café et sourires compris.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1">
+                  <a href="/ateliers"
+                     className="px-4 py-2.5 rounded-lg text-white font-bold text-xs shadow-sm transition hover:opacity-90"
+                     style={{ background: c.vert }}>
+                    🔧 Découvrir les ateliers
+                  </a>
                   <a href="#horaires"
                      className="px-4 py-2.5 rounded-lg text-white font-bold text-xs shadow-sm transition hover:opacity-90"
                      style={{ background: c.orange }}>
@@ -995,16 +1007,4 @@ export function App() {
       </footer>
     </div>
   )
-import Login from './pages/login'
-import Espace from './pages/espace'
-import PlanningApp from './PlanningApp'
-import Gestion from './pages/gestion'
-
-export default function App() {
-  const path = window.location.pathname.replace(/\/+$/, '') || '/'
-  if (path === '/login') return <Login />
-  if (path === '/espace') return <Espace />
-  if (path === '/planning' || path.startsWith('/admin/planning')) return <PlanningApp />
-  if (path === '/gestion') return <Gestion />
-  return <Login />
 }
