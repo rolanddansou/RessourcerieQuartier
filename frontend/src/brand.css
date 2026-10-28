@@ -1,0 +1,676 @@
+/* Identity drawn from the supplied paper-collage artwork. */
+:root {
+  --green: #2d5738;
+  --green-dark: #1d3e2a;
+  --muted: #676b53;
+  --border: #d9cfb6;
+  --radius: 9px;
+  --paper: #fffdf4;
+  --ochre: #edbc3f;
+  --rust: #ad4026;
+  color: #293525;
+  background: #f3eddc;
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+}
+body {
+  background-image: radial-gradient(#786b4320 0.6px, transparent 0.6px);
+  background-size: 7px 7px;
+}
+.app-header {
+  background: #fffdf5;
+  border-bottom: 4px solid var(--green);
+  position: relative;
+}
+.app-header::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  right: 0;
+  width: 23%;
+  height: 4px;
+  background: var(--ochre);
+}
+.header-inner {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.brand-artwork {
+  gap: 12px;
+}
+.header-logo {
+  display: block;
+  width: 310px;
+  height: auto;
+}
+.header-emblem,
+.mobile-wordmark {
+  display: none;
+}
+.avatar {
+  background: #eab947;
+  color: #4b361b;
+  border-radius: 7px 11px 6px 9px;
+  transform: rotate(-5deg);
+  border: 1px solid #b88b32;
+}
+.account-name {
+  color: #30412c;
+}
+.account-name small {
+  color: #72745f;
+}
+.workspace-main {
+  padding-top: 30px;
+}
+.page-heading {
+  position: relative;
+  min-height: 192px;
+  padding: 28px 32px;
+  background: #e9e5ce;
+  background-image: linear-gradient(115deg, #fff9e8 0%, #ece8d3 72%);
+  border: 1px solid #d5ccb0;
+  border-radius: 3px 13px 5px 10px;
+  box-shadow: 2px 4px 0 #d7cdb455;
+  gap: 20px;
+}
+.page-heading > div:first-child {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+}
+.page-heading.with-team-photo > div:first-child {
+  max-width: calc(50% - 120px);
+}
+.page-team-photo {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 50%;
+  width: 190px;
+  height: 126px;
+  object-fit: cover;
+  border: 2px solid #c49b42;
+  border-radius: 5px 12px 5px 9px;
+  box-shadow: 3px 5px 0 #75633b30;
+  transform: translate(-50%, -50%) rotate(-2deg);
+}
+.page-heading .eyebrow {
+  color: #8d3b28;
+  letter-spacing: 0.18em;
+  font-weight: 800;
+  margin-bottom: 15px;
+}
+h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+.title-paper {
+  color: #203e2a;
+  background: #fffdf4;
+  padding: 3px 10px 6px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  box-shadow: 2px 3px 0 #c9b89080;
+}
+.page-description {
+  color: #62664d;
+  margin-top: 14px;
+  max-width: 580px;
+  line-height: 1.7;
+}
+.hero-collage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 230px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+.hero-emblem {
+  width: 145px;
+  height: 145px;
+  object-fit: contain;
+  transform: rotate(-8deg);
+  filter: drop-shadow(1px 3px 0 #ac9c7140);
+}
+.community-label {
+  display: block;
+  position: absolute;
+  right: -4px;
+  bottom: 12px;
+  padding: 10px 16px;
+  background: #edbc3f;
+  border: 1px solid #d9a52a;
+  box-shadow: 2px 3px 0 #9c823a33;
+  color: #493a1a;
+  font:
+    700 0.8rem/1.5 'Trebuchet MS',
+    sans-serif;
+  transform: rotate(5deg);
+  white-space: normal;
+}
+.community-label strong {
+  font:
+    800 1.2rem Georgia,
+    serif;
+  color: #263e27;
+}
+.page-nav {
+  gap: 12px;
+  border: 0;
+  margin: 22px 0 0;
+  padding: 4px 2px 7px;
+}
+.page-nav button {
+  border: 1px solid #cfc7ac;
+  border-bottom: 3px solid #c7bfa6;
+  border-radius: 3px 7px 3px 5px;
+  background: #fffaf0;
+  padding: 13px 18px;
+  font-size: 0.83rem;
+  color: #555d42;
+}
+.page-nav button:hover:not(:disabled) {
+  background: #eee8d1;
+  border-bottom-color: #9b9e7e;
+}
+.page-nav button[aria-current='page'] {
+  background: #2d5738;
+  color: #fffdf0;
+  border-color: #244930;
+  border-bottom-color: #193c24;
+  box-shadow: 1px 3px 0 #c6bda1;
+}
+button {
+  border-radius: 5px;
+  font-weight: 700;
+}
+.secondary {
+  background: #fffdf5;
+  color: #354c30;
+  border-color: #cfc8b0;
+}
+.secondary:hover:not(:disabled) {
+  background: #ecebd6;
+  border-color: #a3ad87;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-color: #ae4d2d;
+}
+.week-navigation {
+  padding: 15px 18px;
+  margin: 16px 0 24px;
+  background: #fffbef;
+  border: 1px solid #dad1b7;
+  border-radius: 7px;
+}
+.week-picker input {
+  background: #fffef7;
+  border-color: #cfc6aa;
+}
+.week-context {
+  color: #555b42;
+}
+.week-context small {
+  color: #75745d;
+}
+.stats-grid {
+  gap: 18px;
+}
+.stat {
+  position: relative;
+  background: #faf8eb;
+  border-color: #d8d0b7;
+  border-radius: 5px 10px 5px 7px;
+  padding: 20px 22px;
+  box-shadow: 2px 3px 0 #d6cdb34d;
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  width: 36px;
+  height: 10px;
+  top: -5px;
+  left: 20px;
+  background: #dfc985a6;
+  transform: rotate(-7deg);
+  border: 1px solid #ceb56740;
+}
+.stat:nth-child(2) {
+  background: #f6efcd;
+  border-color: #d7c68e;
+}
+.stat:nth-child(2)::before {
+  transform: rotate(5deg);
+  background: #e7b84ca6;
+}
+.stat:nth-child(3) {
+  background: #e8eddb;
+  border-color: #bdc9ab;
+}
+.stat:nth-child(3)::before {
+  background: #99b47780;
+}
+.stat strong {
+  color: #304b2f;
+  font-family: Georgia, serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+}
+.stat div > span {
+  color: #65684e;
+  font-size: 0.76rem;
+}
+.stat-icon {
+  border-radius: 50%;
+  color: #5b7448;
+  background: #e9e8d4;
+}
+.stat:nth-child(2) .stat-icon {
+  color: #9d641d;
+  background: #efdf9f;
+}
+.stat:nth-child(3) .stat-icon {
+  color: #3e693d;
+  background: #d6e1c4;
+}
+.panel {
+  background: #fffdf6;
+  border-color: #d9d1b8;
+  border-radius: 8px;
+  box-shadow: 0 3px 0 #d5ccb130;
+}
+h2 {
+  color: #35482e;
+  font-weight: 750;
+  font-size: 1.08rem;
+}
+.panel-heading {
+  padding-bottom: 18px;
+  border-bottom: 1px dashed #d6ccb0;
+}
+.panel-heading .muted {
+  color: #74715b;
+  font-size: 0.79rem;
+}
+.planning-panel {
+  border-top: 4px solid #4e7145;
+}
+.status-badge {
+  color: #78591c;
+  background: #f7ebc0;
+  border-color: #d8c173;
+  border-radius: 4px 6px 3px 5px;
+  font-weight: 700;
+}
+.status-badge.published {
+  color: #31552d;
+  background: #e0ebce;
+  border-color: #b1c495;
+}
+.week-grid {
+  gap: 10px;
+}
+.week-grid .day-group {
+  background: #f2f0e3;
+  border: 1px solid #e4dfca;
+  border-radius: 5px;
+  padding: 12px 8px;
+}
+.week-grid .day-group.is-today {
+  background: #f6ebbf;
+  border-color: #d5b65d;
+  box-shadow: none;
+}
+.day-heading h3 span {
+  color: #72715a;
+  font-size: 0.7rem;
+}
+.day-heading h3 strong {
+  color: #384d30;
+  font-size: 0.8rem;
+}
+.day-count {
+  background: #e6e8d5;
+  color: #566442;
+  border-radius: 3px;
+  font-weight: 700;
+}
+.day-empty {
+  color: #74745c;
+}
+.today-label {
+  color: #8a591b;
+  font-weight: 700;
+}
+.slot-card {
+  background: #f1f3e6;
+  border-color: #d6dfc5;
+  border-left: 4px solid #77965c;
+  border-radius: 4px 7px 4px 6px;
+}
+.week-grid .slot-card {
+  background: #fffef7;
+  border-left-color: #b68434;
+}
+.slot-card.own-slot {
+  border-left-color: #315e37;
+  background: #eaf0df;
+}
+.slot-time {
+  color: #335432;
+}
+.slot-note {
+  color: #6d7057;
+  font-size: 0.8rem;
+}
+.slot-actions {
+  border-top-style: dashed;
+  border-color: #ccd5b8;
+}
+.slot-person {
+  font-weight: 700;
+}
+.you-badge {
+  background: #d6e4bd;
+  color: #35572d;
+  border-radius: 3px;
+}
+.prepare-button {
+  background: #fffcf0;
+}
+.availability-list .day-group {
+  border-bottom: 1px dashed #ded7bf;
+}
+.editor {
+  border-top: 4px solid #c18a36;
+}
+.editor-heading .icon-tile {
+  background: #f2e4b8;
+  color: #8a6525;
+  border-radius: 4px 8px 3px 6px;
+  transform: rotate(-4deg);
+}
+.editor-heading .eyebrow {
+  color: #9a482b;
+}
+.editor-intro {
+  color: #72715b;
+}
+input,
+select,
+textarea {
+  background: #fffef9;
+  border-color: #d4cbb2;
+  border-radius: 5px;
+  color: #35442b;
+}
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: #a9af89;
+}
+label {
+  color: #4c533a;
+  font-size: 0.8rem;
+}
+.form-actions {
+  border-top: 1px dashed #ded6bb;
+  padding-top: 18px;
+}
+.field-hint {
+  color: #6e7158;
+  font-size: 0.7rem;
+}
+.notice-success {
+  background: #e7eed8;
+  border-color: #bacd9b;
+  color: #3d602f;
+}
+.notice-info {
+  background: #f5edce;
+  border-color: #dacc98;
+  color: #6b5b31;
+}
+.notice-error {
+  background: #f9e9df;
+  border-color: #dcb6a1;
+  color: #8c3e28;
+}
+.notice {
+  border-radius: 5px;
+}
+.empty-icon {
+  background: #ebe9d3;
+  color: #7a895e;
+  border-radius: 7px 14px 6px 12px;
+  transform: rotate(-5deg);
+}
+.empty-state h3 {
+  color: #4c5d3c;
+  font-family: Georgia, serif;
+  font-size: 1.13rem;
+}
+.empty-state p {
+  color: #72715b;
+}
+.setup-hint {
+  background: #eae8d1;
+  border-color: #b9bf99;
+}
+.workspace-footer {
+  color: #76745e;
+  border-top: 1px dashed #d3c9ad;
+  padding-top: 25px;
+}
+dialog {
+  background: #fffaf0;
+  border-top: 5px solid #bb7d2c;
+  border-radius: 8px;
+}
+@media (max-width: 1100px) {
+  .hero-collage {
+    width: 170px;
+  }
+  .hero-emblem {
+    width: 125px;
+    height: 125px;
+  }
+  .community-label {
+    right: -8px;
+    bottom: 0;
+    padding: 8px 12px;
+    font-size: 0.7rem;
+  }
+}
+@media (max-width: 760px) {
+  .header-logo {
+    width: 255px;
+  }
+  .header-inner {
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  .page-heading {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 23px 20px;
+  }
+  .page-heading > div:first-child {
+    max-width: none;
+  }
+  .page-heading.with-team-photo > div:first-child {
+    max-width: none;
+  }
+  .page-team-photo {
+    position: static;
+    justify-self: center;
+    width: min(100%, 240px);
+    height: auto;
+    aspect-ratio: 3 / 2;
+    transform: rotate(-2deg);
+  }
+  .page-heading .eyebrow {
+    font-size: 0.61rem;
+    margin-bottom: 13px;
+  }
+  .page-heading h1 {
+    font-size: 2rem;
+    line-height: 1.35;
+  }
+  .title-paper {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .hero-collage {
+    display: none;
+  }
+  .page-description {
+    font-size: 0.83rem;
+  }
+  .page-nav {
+    gap: 8px;
+  }
+  .page-nav button {
+    padding: 12px 10px;
+    font-size: 0.77rem;
+  }
+  .week-navigation {
+    padding: 12px;
+    gap: 12px;
+  }
+  .stats-grid {
+    gap: 9px;
+  }
+  .stat {
+    padding: 16px 10px;
+  }
+  .stat strong {
+    font-size: 1.55rem;
+  }
+  .stat div > span {
+    font-size: 0.7rem;
+  }
+  .panel {
+    padding: 18px;
+  }
+  .week-grid .day-group {
+    padding: 11px;
+  }
+}
+@media (max-width: 600px) {
+  .header-inner {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 13px 16px;
+  }
+  .header-logo {
+    display: none;
+  }
+  .header-emblem {
+    display: block;
+    width: 65px;
+    height: 65px;
+    object-fit: contain;
+  }
+  .brand-artwork {
+    gap: 10px;
+  }
+  .mobile-wordmark {
+    display: block;
+    font:
+      800 1rem/1.4 Georgia,
+      serif;
+    color: #203e2a;
+    letter-spacing: -0.035em;
+  }
+  .mobile-wordmark > span {
+    background: #fff7dc;
+    box-shadow: 1px 2px 0 #dacba7;
+    padding: 3px 5px;
+    display: inline-block;
+    transform: rotate(-2deg);
+  }
+  .mobile-wordmark strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 1.15rem;
+  }
+  .mobile-wordmark em {
+    font-style: normal;
+    color: #aa3e22;
+    background: #f3dfaa;
+    padding: 0 4px 2px;
+  }
+  .account {
+    margin-left: auto;
+  }
+  .account-name {
+    font-size: 0.75rem;
+  }
+  .page-nav {
+    gap: 6px;
+  }
+  .page-nav button {
+    padding: 12px 8px;
+    font-size: 0.73rem;
+  }
+  .page-nav button svg {
+    width: 14px;
+  }
+}
+@media (max-width: 400px) {
+  .workspace-main {
+    padding-top: 20px;
+  }
+  .page-heading {
+    padding: 22px 14px;
+  }
+  .page-heading h1 {
+    font-size: 1.75rem;
+  }
+  .page-nav {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .page-nav button {
+    flex: 1 1 auto;
+  }
+  .week-picker input {
+    width: 160px;
+  }
+  .week-controls {
+    gap: 5px;
+  }
+  .week-context {
+    font-size: 0.73rem;
+  }
+  .field-hint {
+    font-size: 0.67rem;
+  }
+}
+
+.hero-martine img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+.hero-martine figcaption {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #163f32;
+}
+
+@media (max-width: 600px) {
+  .hero-martine { width: 90px; }
+}
