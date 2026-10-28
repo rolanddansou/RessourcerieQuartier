@@ -74,14 +74,3 @@ export async function session(signal?: AbortSignal) {
   csrf = result.csrf
   return result.user
 }
-
-export async function signIn(username: string, password: string) {
-  // Obtain a fresh token even after an expired session or another tab's login.
-  await session()
-  const result = await api<{ user: User; csrf: string }>('login/', {
-    method: 'POST',
-    data: { username, password },
-  })
-  csrf = result.csrf
-  return result.user
-}

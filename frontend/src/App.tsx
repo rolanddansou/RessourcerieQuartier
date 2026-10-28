@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, errorMessage, session } from './planning/api'
-import { LoginScreen } from './planning/LoginScreen'
 import { PlanningWorkspace } from './planning/PlanningWorkspace'
 import { Loading, Notice } from './planning/components/Ui'
 import type { User } from './planning/types'
@@ -9,11 +8,11 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
+  const [expiredSession, setExpiredSession] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const expired = useCallback(() => {
     setUser(null)
-    setMessage('Votre session a expiré. Reconnectez-vous pour continuer.')
+    setExpiredSession(true)
   }, [])
 
   useEffect(() => {
@@ -57,16 +56,7 @@ export default function App() {
         </Notice>
       </main>
     )
-  if (!user)
-    return (
-      <LoginScreen
-        message={message}
-        onLogin={(user) => {
-          setUser(user)
-          setMessage('')
-        }}
-      />
-    )
+  if (!user) return <LoginRedirect expired={expiredSession} />
   if (
     !user.active ||
     !user.roles.some((role) => ['admin', 'benevole'].includes(role))
@@ -100,8 +90,21 @@ export default function App() {
       onExpired={expired}
       onLogout={() => {
         setUser(null)
-        setMessage('')
+        setExpiredSession(false)
       }}
     />
+  )
+}
+
+function LoginRedirect({ expired }: { expired: boolean }) {
+  const destination = `/admin/login/?next=${encodeURIComponent('/admin/planning/')}${expired ? '&expired=1' : ''}`
+  useEffect(() => {
+    window.location.replace(destination)
+  }, [destination])
+  return (
+    <main className="session-state">
+      <Loading>Redirection vers la connexion Django…</Loading>
+      <a href={destination}>Accéder au formulaire de connexion</a>
+    </main>
   )
 }
