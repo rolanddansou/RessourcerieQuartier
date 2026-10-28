@@ -14,19 +14,22 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      const res = await fetch('/api/login/', {
+      const s = await fetch('/api/planning/session/', { credentials: 'same-origin' })
+      const { csrf } = await s.json()
+
+      const res = await fetch('/api/planning/login/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
         body: JSON.stringify({ username, password }),
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.detail ?? 'Connexion impossible.')
+        setError(data.errors?.auth?.[0] ?? 'Connexion impossible.')
         return
       }
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-      window.location.href = '/espace'
+      const roles: string[] = data.user?.roles ?? []
+      window.location.href = roles.includes('admin') ? '/gestion/' : '/admin/planning/'
     } catch {
       setError('Le serveur ne répond pas. Réessayez plus tard.')
     } finally {
