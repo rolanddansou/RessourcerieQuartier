@@ -1,6 +1,8 @@
 import { StrictMode, useEffect, useState, type FormEvent } from 'react'
 import { createRoot } from 'react-dom/client'
+import App from './App'
 import './style.css'
+import './brand.css'
 
 type AtelierInscription = {
   id: number
