@@ -17,6 +17,7 @@ import { SlotList } from './components/SlotList'
 import { WeekNavigation } from './components/WeekNavigation'
 import { Brand, BrandEmblem } from './components/Brand'
 import equipeBenevoles from '../assets/equipe-benevoles.png'
+import mamie from '../assets/mamie.png'
 
 const pages: Record<Page, { title: string; description: string }> = {
   availability: {
@@ -387,9 +388,23 @@ export function PlanningWorkspace({
         <div className="header-inner">
           <Brand />
           <div className="account">
-            <span className="avatar" aria-hidden="true">
-              {user.name.slice(0, 1).toLocaleUpperCase('fr')}
-            </span>
+            {admin ? (
+              <img
+                className="account-photo account-photo-admin"
+                src={mamie}
+                alt="Martine, la présidente de la Ressourcerie"
+              />
+            ) : volunteer ? (
+              <img
+                className="account-photo account-photo-volunteer"
+                src={equipeBenevoles}
+                alt="L’équipe des bénévoles solidaires"
+              />
+            ) : (
+              <span className="avatar" aria-hidden="true">
+                {user.name.slice(0, 1).toLocaleUpperCase('fr')}
+              </span>
+            )}
             <span className="account-name">
               {user.name}
               <small>{admin ? 'Administration' : 'Bénévole'}</small>
@@ -408,7 +423,7 @@ export function PlanningWorkspace({
         </div>
       </header>
       <main id="main-content" className="workspace-main" tabIndex={-1}>
-        <div className={`page-heading ${volunteer && !admin ? 'with-team-photo' : ''}`}>
+        <div className="page-heading">
           <div>
             <p className="eyebrow">LE COIN DES BÉNÉVOLES</p>
             <h1>
@@ -416,13 +431,6 @@ export function PlanningWorkspace({
             </h1>
             <p className="page-description">{pages[page].description}</p>
           </div>
-          {volunteer && !admin && (
-            <img
-              className="page-team-photo"
-              src={equipeBenevoles}
-              alt="Portrait de l’équipe des bénévoles solidaires"
-            />
-          )}
           <div className="hero-collage" aria-hidden="true">
             <BrandEmblem />
             <span className="community-label">

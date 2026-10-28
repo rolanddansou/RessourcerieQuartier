@@ -80,6 +80,11 @@ export default function Gestion() {
         <div className="gestion-marque">
           <img className="gestion-logo" src={logo} alt="La Ressourcerie du Quartier" />
         </div>
+        <img
+          className="gestion-martine-entete"
+          src={mamie}
+          alt="Martine, la présidente de la Ressourcerie"
+        />
         <div className="gestion-compte">
           <span>Bonjour {nom}</span>
           <button className="gestion-secondaire" onClick={deconnexion}>Me déconnecter</button>
@@ -89,11 +94,6 @@ export default function Gestion() {
       <main className="gestion-contenu">
         {vue === 'accueil' ? (
           <section className="gestion-accueil">
-            <img
-              className="gestion-martine-centree"
-              src={mamie}
-              alt="Martine, la présidente de la Ressourcerie"
-            />
             <h1>Que voulez-vous faire ?</h1>
             <div className="gestion-grille">
               <button className="gestion-tuile" onClick={() => setVue('benevoles')}>
