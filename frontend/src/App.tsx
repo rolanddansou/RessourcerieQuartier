@@ -111,7 +111,7 @@ function CritereGroup({ kind, titre, color, items, itemLabel, onSave, onDelete, 
       <div className="flex items-center justify-between gap-2">
         <p className="font-bold text-sm" style={{ color }}>{titre} <span className="text-stone-400 font-normal">({items.length})</span></p>
         <button type="button" onClick={() => setEditing(!editing)}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold text-white"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold text-white whitespace-nowrap shrink-0"
                 style={{ background: editing ? '#6b7280' : color }}>
           {editing ? '✓ Terminer' : '✏️ Éditer la liste'}
         </button>
@@ -472,7 +472,7 @@ export function App() {
 
       {/* Toast notification */}
       {toast && (
-        <div className="fixed bottom-20 sm:bottom-5 right-4 left-4 sm:left-auto sm:right-5 z-50 text-white px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center gap-2"
+        <div className="fixed bottom-20 right-4 left-4 sm:left-auto sm:right-5 z-50 text-white px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center gap-2"
              style={{ background: c.vert }}>
           <span>✅</span> <span>{toast}</span>
         </div>
@@ -485,28 +485,43 @@ export function App() {
         <main className="max-w-7xl w-full mx-auto px-4 py-6 space-y-8 flex-1">
 
           {/* Hero */}
-          <div className="rounded-2xl overflow-hidden relative" style={{ background: `linear-gradient(135deg, ${c.vert} 0%, #1e4d2b 60%, #3a2010 100%)` }}>
-            <div className="px-6 py-8 sm:px-10 sm:py-12 text-white space-y-4 relative z-10">
-              <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
-                    style={{ background: c.jaune, color: c.brun }}>
-                🌱 Quartier Solidaire · Zéro Déchet
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black leading-tight">
-                Donnez une seconde vie<br />à vos objets du quotidien
-              </h2>
-              <p className="text-sm opacity-80 max-w-md">
-                Collecte solidaire, réemploi et ateliers participatifs de réparation — gratuits pour tous.
-              </p>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <a href="#horaires"
-                   className="px-4 py-2 rounded-lg text-white font-bold text-xs shadow-sm transition hover:opacity-90"
-                   style={{ background: c.orange }}>
-                  ⏰ Horaires &amp; accès
-                </a>
-                <a href="#dons"
-                   className="px-4 py-2 rounded-lg font-bold text-xs border border-white/30 text-white hover:bg-white/10 transition">
-                  📦 Guide des dons
-                </a>
+          <div className="rounded-2xl overflow-hidden border border-stone-200 shadow-sm"
+               style={{ background: `linear-gradient(120deg, #fffdf8 0%, ${c.jauneCl} 55%, ${c.vertClair} 100%)` }}>
+            <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-2 px-6 pt-8 sm:px-10 md:pt-0">
+              <div className="md:col-span-3 space-y-4 md:py-12">
+                <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
+                      style={{ background: c.jaune, color: c.brun }}>
+                  🌱 Quartier solidaire · Zéro déchet
+                </span>
+                <h2 className="text-2xl sm:text-4xl font-black leading-tight" style={{ color: c.vert }}>
+                  Ici, rien ne se perd,<br />tout se partage&nbsp;!
+                </h2>
+                <p className="text-sm sm:text-base text-stone-700 leading-relaxed max-w-xl">
+                  La Ressourcerie du Quartier, c'est la bande de voisins qui donne une seconde vie à tout ce que vous n'utilisez plus :
+                  une lampe, une chaise, un grille-pain… On les récupère, on les répare dans la bonne humeur, puis on les revend
+                  à petit prix. Résultat : moins de déchets, des économies pour tous et un quartier qui se
+                  connaît mieux.
+                </p>
+                <p className="text-sm sm:text-base text-stone-700 leading-relaxed max-w-xl">
+                  Venez donner, dénicher une bonne affaire, ou pousser la porte d'un de nos <strong>ateliers de réparation</strong> :
+                  on vous y apprend à réparer, café et sourires compris.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <a href="#horaires"
+                     className="px-4 py-2.5 rounded-lg text-white font-bold text-xs shadow-sm transition hover:opacity-90"
+                     style={{ background: c.orange }}>
+                    ⏰ Horaires &amp; accès
+                  </a>
+                  <a href="#dons"
+                     className="px-4 py-2.5 rounded-lg font-bold text-xs border transition hover:bg-white"
+                     style={{ color: c.vert, borderColor: c.vert }}>
+                    📦 Que peut-on donner ?
+                  </a>
+                </div>
+              </div>
+              <div className="md:col-span-2 flex justify-center md:justify-end self-end">
+                <img src="/martine.png" alt="Martine, présidente de la Ressourcerie du Quartier, tenant le panneau de l'association"
+                     className="w-64 sm:w-80 md:w-full max-w-sm h-auto drop-shadow-lg" />
               </div>
             </div>
           </div>
@@ -514,7 +529,7 @@ export function App() {
           {/* Horaires & Accès */}
           <section id="horaires" className="space-y-3">
             <h3 className="text-lg font-bold" style={{ color: c.brun }}>⏰ Horaires &amp; Accès</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className={`${card} p-4`}>
                 <h4 className="font-bold text-xs mb-2.5" style={{ color: c.vert }}>📅 Boutique &amp; Dépôts</h4>
                 <ul className="text-xs space-y-1.5 text-stone-700">
@@ -548,16 +563,42 @@ export function App() {
                 {infos?.telephone && <p className="text-xs text-stone-600 mt-2">📞 <a href={`tel:${infos.telephone.replace(/\s/g, '')}`}>{infos.telephone}</a></p>}
                 {infos?.email && <p className="text-xs text-stone-600 mt-1">✉️ <a href={`mailto:${infos.email}`} className="underline">{infos.email}</a></p>}
               </div>
-              <div className={`${card} p-4 flex flex-col justify-between`}>
-                <div>
-                  <h4 className="font-bold text-xs mb-1" style={{ color: c.orange }}>🤝 Devenir Bénévole</h4>
-                  <p className="text-xs text-stone-600 mt-1">Rejoignez l'équipe et partagez vos compétences en réparation !</p>
-                </div>
-                <button onClick={() => setCurrentRoute('/benevole')}
-                        className="w-full py-2 rounded-lg text-white text-xs font-bold mt-4"
-                        style={{ background: c.vert }}>
-                  Accéder à l'espace bénévoles
-                </button>
+            </div>
+          </section>
+
+          {/* Devenir bénévole */}
+          <section id="benevoles" className="rounded-2xl overflow-hidden text-white"
+                   style={{ background: `linear-gradient(135deg, ${c.vert} 0%, #1e4d2b 100%)` }}>
+            <div className="px-6 py-8 sm:px-10 sm:py-10 space-y-5">
+              <div className="space-y-2 max-w-2xl">
+                <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
+                      style={{ background: c.jaune, color: c.brun }}>🤝 On a besoin de vous</span>
+                <h3 className="text-2xl sm:text-3xl font-black leading-tight">Et si vous nous rejoigniez&nbsp;?</h3>
+                <p className="text-sm sm:text-base opacity-90 leading-relaxed">
+                  Pas besoin d'être bricoleur ni disponible tous les jours : chez nous, chacun donne le temps qu'il peut,
+                  et repart avec le sourire.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { icon: '🔧', titre: 'Apprenez de nouveaux gestes', texte: "Réparer, trier, relooker : nos bénévoles vous montrent, vous transmettez ensuite." },
+                  { icon: '☕', titre: 'Rencontrez vos voisins', texte: 'Une équipe chaleureuse, des permanences conviviales et beaucoup de rires.' },
+                  { icon: '🌍', titre: 'Agissez concrètement', texte: "Chaque objet sauvé, c'est un déchet évité et un foyer qui économise." },
+                ].map(b => (
+                  <div key={b.titre} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.12)' }}>
+                    <p className="text-2xl">{b.icon}</p>
+                    <p className="font-bold text-sm mt-1">{b.titre}</p>
+                    <p className="text-xs opacity-85 mt-1 leading-relaxed">{b.texte}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <a href={`mailto:${infos?.email ?? ""}?subject=Devenir%20b%C3%A9n%C3%A9vole`}
+                        className="inline-block px-6 py-3 rounded-xl font-black text-sm shadow-lg transition hover:scale-105"
+                        style={{ background: c.jaune, color: c.brun }}>
+                  🙋 Devenir bénévole
+                </a>
+                <span className="text-xs opacity-80">Moins de 2 minutes · sans engagement</span>
               </div>
             </div>
           </section>
@@ -622,7 +663,7 @@ export function App() {
           VUE 2 : ESPACE BÉNÉVOLE (/benevole)
       ══════════════════════════════════════════════ */}
       {currentRoute === '/benevole' && (
-        <main className="max-w-7xl w-full mx-auto px-4 py-4 space-y-4 flex-1 pb-24 md:pb-8">
+        <main className="max-w-7xl w-full mx-auto px-4 py-4 space-y-4 flex-1 pb-24">
 
           {/* Header sous-vue */}
           <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
@@ -738,7 +779,7 @@ export function App() {
           VUE 3 : ESPACE MARTINE (/admin)
       ══════════════════════════════════════════════ */}
       {currentRoute === '/admin' && (
-        <main className="max-w-7xl w-full mx-auto px-4 py-4 space-y-4 flex-1 pb-24 md:pb-8">
+        <main className="max-w-7xl w-full mx-auto px-4 py-4 space-y-4 flex-1 pb-24">
 
           {/* Header admin */}
           <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
@@ -837,7 +878,7 @@ export function App() {
               <p className="text-stone-500">Ces informations s'affichent sur le site public, sans connexion.</p>
               <input name="adresse" required defaultValue={infos.adresse} placeholder="Adresse" className={inputCls} />
               <input name="acces" defaultValue={infos.acces} placeholder="Accès / transports" className={inputCls} />
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input name="telephone" defaultValue={infos.telephone} placeholder="Téléphone" className={inputCls} />
                 <input name="email" type="email" defaultValue={infos.email} placeholder="Email" className={inputCls} />
               </div>
@@ -907,7 +948,7 @@ export function App() {
 
       {/* Bottom Nav Bénévoles */}
       {currentRoute === '/benevole' && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 py-1.5 px-2 flex justify-around shadow-lg">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 py-1.5 px-2 flex justify-around md:justify-center md:gap-14 shadow-lg">
           {[
             { key: 'dons',     icon: '📦', label: 'Dons' },
           ].map(item => (
@@ -924,7 +965,7 @@ export function App() {
 
       {/* Bottom Nav Admin Martine */}
       {currentRoute === '/admin' && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 py-1.5 px-2 flex justify-around shadow-lg">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 py-1.5 px-2 flex justify-around md:justify-center md:gap-14 shadow-lg">
           {[
             { key: 'dons',       icon: '📦', label: 'Dons' },
             { key: 'infos',      icon: 'ℹ️', label: 'Infos' },
