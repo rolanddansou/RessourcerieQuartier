@@ -11,6 +11,17 @@ interface DonItem {
   notes: string
 }
 
+interface Infos {
+  adresse: string
+  acces: string
+  telephone: string
+  email: string
+  horaires: { jour: string; plage: string }[]
+  jours_fermes: string
+  fermetures: { id: number; date: string; motif: string }[]
+  updated_at: string
+}
+
 interface Stats {
   dons: { total: number; recu: number; a_reparer: number; repare: number; vente: number; vendu: number }
 }
@@ -63,7 +74,9 @@ function StatusBadge({ status }: { status: string }) {
 export function App() {
   const [currentRoute, setCurrentRoute] = useState<'/' | '/benevole' | '/admin'>('/')
   const [benevoleView, setBenevoleView] = useState<'dons'>('dons')
-  const [adminView, setAdminView] = useState<'dons' | 'supervision'>('dons')
+  const [adminView, setAdminView] = useState<'dons' | 'supervision' | 'infos'>('dons')
+  const [infos, setInfos] = useState<Infos | null>(null)
+  const [horairesEdit, setHorairesEdit] = useState<{ jour: string; plage: string }[]>([])
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -86,12 +99,15 @@ export function App() {
 
   const fetchAllData = async () => {
     try {
-      const [resDons, resStats] = await Promise.all([
+      const [resDons, resStats, resInfos] = await Promise.all([
         fetch('/api/dons/').then(r => r.json()),
         fetch('/api/stats/').then(r => r.json()),
+        fetch('/api/infos/').then(r => r.json()),
       ])
       setDons(resDons)
       setStats(resStats)
+      setInfos(resInfos)
+      setHorairesEdit(resInfos.horaires)
     } catch {
       console.warn('Backend Django en cours de synchronisation...')
     }
@@ -109,6 +125,53 @@ export function App() {
       if (res.ok) { showToast(`État mis à jour : ${DON_STATUTS.find(s => s.key === newStatus)?.label ?? newStatus}`); fetchAllData() }
     } catch { showToast('Erreur réseau') }
   }
+
+  const handleSaveInfos = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const f = e.currentTarget.elements
+    const val = (n: string) => (f.namedItem(n) as HTMLInputElement).value
+    try {
+      const res = await fetch('/api/infos/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adresse: val('adresse'), acces: val('acces'), telephone: val('telephone'),
+          email: val('email'), jours_fermes: val('jours_fermes'), horaires: horairesEdit,
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setInfos(data); setHorairesEdit(data.horaires)
+        showToast('Informations publiques mises à jour')
+      } else showToast('Enregistrement impossible')
+    } catch { showToast('Erreur réseau') }
+  }
+
+  const handleAddFermeture = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = e.currentTarget
+    const date = (form.elements.namedItem('date') as HTMLInputElement).value
+    const motif = (form.elements.namedItem('motif') as HTMLInputElement).value
+    try {
+      const res = await fetch('/api/fermetures/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, motif }),
+      })
+      if (res.ok) { showToast('Jour de fermeture ajouté'); form.reset(); fetchAllData() }
+      else showToast('Date invalide')
+    } catch { showToast('Erreur réseau') }
+  }
+
+  const handleDeleteFermeture = async (id: number) => {
+    try {
+      const res = await fetch(`/api/fermetures/${id}/`, { method: 'DELETE' })
+      if (res.ok) { showToast('Fermeture retirée'); fetchAllData() }
+    } catch { showToast('Erreur réseau') }
+  }
+
+  const fmtJour = (iso: string) =>
+    new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
 
   const handleDeleteDon = async (dbId: number) => {
     if (!confirm("Supprimer cet objet de l'inventaire ?")) return
@@ -301,17 +364,35 @@ export function App() {
               <div className={`${card} p-4`}>
                 <h4 className="font-bold text-xs mb-2.5" style={{ color: c.vert }}>📅 Boutique &amp; Dépôts</h4>
                 <ul className="text-xs space-y-1.5 text-stone-700">
-                  <li className="flex justify-between border-b border-stone-100 pb-1"><span>Mercredi</span><strong>14h00 – 18h30</strong></li>
-                  <li className="flex justify-between border-b border-stone-100 pb-1"><span>Vendredi</span><strong>14h00 – 19h00</strong></li>
-                  <li className="flex justify-between border-b border-stone-100 pb-1"><span>Samedi</span><strong>10h00 – 18h00</strong></li>
-                  <li className="flex justify-between text-stone-400"><span>Dim., Lun., Mar.</span><span>Fermé</span></li>
+                  {infos?.horaires.map(h => (
+                    <li key={h.jour} className="flex justify-between border-b border-stone-100 pb-1"><span>{h.jour}</span><strong>{h.plage}</strong></li>
+                  ))}
+                  {infos?.jours_fermes && (
+                    <li className="flex justify-between text-stone-400"><span>{infos.jours_fermes}</span><span>Fermé</span></li>
+                  )}
                 </ul>
+                {infos && infos.fermetures.length > 0 && (
+                  <div className="mt-3 rounded-lg p-2 text-xs" style={{ background: c.orangeCl, color: c.orange }}>
+                    <p className="font-bold mb-1">⚠️ Fermetures exceptionnelles</p>
+                    <ul className="space-y-0.5">
+                      {infos.fermetures.map(f => (
+                        <li key={f.id}><span className="capitalize">{fmtJour(f.date)}</span>{f.motif && ` · ${f.motif}`}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {infos && (
+                  <p className="text-[10px] text-stone-400 mt-2">
+                    Mis à jour le {new Date(infos.updated_at).toLocaleDateString('fr-FR')}
+                  </p>
+                )}
               </div>
               <div className={`${card} p-4`}>
                 <h4 className="font-bold text-xs mb-2" style={{ color: c.brun }}>📍 Nous trouver</h4>
-                <p className="text-xs font-semibold text-stone-700">14 rue de la Solidarité, 75000 Paris</p>
-                <p className="text-xs text-stone-500 mt-1">Métro Ligne 9 · Vélib' en face</p>
-                <p className="text-xs text-stone-600 mt-2">📞 01 42 00 00 00</p>
+                <p className="text-xs font-semibold text-stone-700">{infos?.adresse}</p>
+                {infos?.acces && <p className="text-xs text-stone-500 mt-1">{infos.acces}</p>}
+                {infos?.telephone && <p className="text-xs text-stone-600 mt-2">📞 <a href={`tel:${infos.telephone.replace(/\s/g, '')}`}>{infos.telephone}</a></p>}
+                {infos?.email && <p className="text-xs text-stone-600 mt-1">✉️ <a href={`mailto:${infos.email}`} className="underline">{infos.email}</a></p>}
               </div>
               <div className={`${card} p-4 flex flex-col justify-between`}>
                 <div>
@@ -483,6 +564,7 @@ export function App() {
               </span>
               <h2 className="text-base sm:text-xl font-black" style={{ color: c.brun }}>
                 {adminView === 'dons' ? 'Gestion des Dons'
+                  : adminView === 'infos' ? 'Informations publiques'
                   : 'Supervision & Statistiques'}
               </h2>
             </div>
@@ -542,6 +624,63 @@ export function App() {
             </div>
           )}
 
+          {/* Admin : Informations publiques (horaires, adresse, contact) */}
+          {adminView === 'infos' && infos && (
+            <div className={`${card} p-4 space-y-3 text-xs`}>
+              <h4 className="font-bold text-stone-800">🚫 Ajouter un jour de fermeture</h4>
+              <form onSubmit={handleAddFermeture} className="flex flex-wrap gap-2">
+                <input name="date" type="date" required min={new Date().toISOString().slice(0, 10)} className={`${inputCls} !w-auto`} />
+                <input name="motif" placeholder="Motif (ex : jour férié)" className={`${inputCls} flex-1 min-w-[140px]`} />
+                <button type="submit" className="px-3 py-2 rounded-lg text-white font-bold" style={{ background: c.orange }}>
+                  Fermer ce jour
+                </button>
+              </form>
+              {infos.fermetures.length > 0 ? (
+                <ul className="space-y-1">
+                  {infos.fermetures.map(f => (
+                    <li key={f.id} className="flex items-center justify-between rounded-lg px-2 py-1" style={{ background: c.orangeCl }}>
+                      <span><span className="capitalize font-semibold">{fmtJour(f.date)}</span>{f.motif && ` · ${f.motif}`}</span>
+                      <button onClick={() => handleDeleteFermeture(f.id)} style={{ color: c.orange }} className="font-bold px-1">✕</button>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-stone-400">Aucune fermeture exceptionnelle à venir.</p>}
+            </div>
+          )}
+
+          {adminView === 'infos' && infos && (
+            <form onSubmit={handleSaveInfos} className={`${card} p-4 space-y-3 text-xs`}>
+              <p className="text-stone-500">Ces informations s'affichent sur le site public, sans connexion.</p>
+              <input name="adresse" required defaultValue={infos.adresse} placeholder="Adresse" className={inputCls} />
+              <input name="acces" defaultValue={infos.acces} placeholder="Accès / transports" className={inputCls} />
+              <div className="grid grid-cols-2 gap-2">
+                <input name="telephone" defaultValue={infos.telephone} placeholder="Téléphone" className={inputCls} />
+                <input name="email" type="email" defaultValue={infos.email} placeholder="Email" className={inputCls} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="font-bold text-stone-800">Horaires d'ouverture</p>
+                {horairesEdit.map((h, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input value={h.jour} placeholder="Jour"
+                           onChange={e => setHorairesEdit(horairesEdit.map((x, j) => j === i ? { ...x, jour: e.target.value } : x))}
+                           className={inputCls} />
+                    <input value={h.plage} placeholder="14h00 – 18h30"
+                           onChange={e => setHorairesEdit(horairesEdit.map((x, j) => j === i ? { ...x, plage: e.target.value } : x))}
+                           className={inputCls} />
+                    <button type="button" onClick={() => setHorairesEdit(horairesEdit.filter((_, j) => j !== i))}
+                            style={{ color: c.orange }} className="font-bold px-1">✕</button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setHorairesEdit([...horairesEdit, { jour: '', plage: '' }])}
+                        className="font-semibold" style={{ color: c.vert }}>+ Ajouter un jour</button>
+              </div>
+              <input name="jours_fermes" defaultValue={infos.jours_fermes} placeholder="Jours de fermeture (ex : Dim., Lun., Mar.)" className={inputCls} />
+              <button type="submit" className="w-full py-2 rounded-lg text-white font-bold" style={{ background: c.vert }}>
+                Enregistrer
+              </button>
+            </form>
+          )}
+
           {/* Admin : Supervision & KPIs */}
           {adminView === 'supervision' && stats && (
             <div className="space-y-4">
@@ -586,6 +725,7 @@ export function App() {
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 py-1.5 px-2 flex justify-around shadow-lg">
           {[
             { key: 'dons',       icon: '📦', label: 'Dons' },
+            { key: 'infos',      icon: 'ℹ️', label: 'Infos' },
             { key: 'supervision',icon: '📊', label: 'Stats' },
           ].map(item => (
             <button key={item.key}
