@@ -50,7 +50,7 @@ class SharedLoginTests(TestCase):
                     self.assertEqual(self.login(username, target).url, expected)
 
     def test_anonymous_page_redirects_and_api_stays_json(self):
-        self.assertEqual(self.client.get('/admin/planning/').url, '/admin/login/?next=/admin/planning/')
+        self.assertEqual(self.client.get('/admin/planning/').url, '/login/?next=/admin/planning/')
         self.assertEqual(self.client.get('/api/planning/weeks/?week=2026-10-26').status_code, 401)
         self.assertContains(self.client.get('/admin/login/?expired=1'), 'Votre session a expiré')
 

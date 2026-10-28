@@ -111,11 +111,11 @@ export default function Gestion() {
                 Les dons
                 <small>Bientôt</small>
               </div>
-              <div className="gestion-tuile gestion-bientot">
+              <a className="gestion-tuile" href="/ateliers">
                 <span className="gestion-icone">🔧</span>
                 Les ateliers
-                <small>Bientôt</small>
-              </div>
+                <small>Voir le catalogue et les inscriptions</small>
+              </a>
             </div>
           </section>
         ) : (

@@ -4,6 +4,8 @@ import logo from '../assets/logo.png'
 import './login.css'
 
 export default function Login() {
+  const espace = new URLSearchParams(window.location.search).get('espace')
+  const titre = espace === 'admin' ? 'Espace administration' : 'Espace bénévoles'
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -42,7 +44,7 @@ export default function Login() {
       <section className="login-card">
         <img className="login-logo" src={logo} alt="La Ressourcerie du Quartier" />
         <p className="eyebrow">RÉEMPLOYER · PARTAGER · TRANSMETTRE</p>
-        <h1>Espace bénévoles</h1>
+        <h1>{titre}</h1>
 
         <form onSubmit={handleSubmit}>
           <label htmlFor="username">Identifiant</label>
