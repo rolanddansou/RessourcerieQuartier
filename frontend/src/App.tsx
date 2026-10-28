@@ -11,6 +11,17 @@ interface DonItem {
   notes: string
 }
 
+interface Infos {
+  adresse: string
+  acces: string
+  telephone: string
+  email: string
+  horaires: { jour: string; plage: string }[]
+  jours_fermes: string
+  fermetures: { id: number; date: string; motif: string }[]
+  updated_at: string
+}
+
 interface Stats {
   dons: { total: number; recu: number; a_reparer: number; repare: number; vente: number; vendu: number }
 }
@@ -27,6 +38,129 @@ const c = {
   beige:    '#f5f0e8',
   brun:     '#6b3a1f',
   brunCl:   '#f2ebe3',
+}
+
+interface Critere {
+  id: number
+  kind: 'accepte' | 'refuse' | 'depot'
+  icon: string
+  label: string
+  detail: string
+  condition: string
+}
+
+/* ── Ligne éditable d'un critère de don (espace admin) ── */
+function CritereRow({ critere, onSave, onDelete, inputCls }: {
+  critere: Critere
+  onSave: (id: number, data: Partial<Critere>) => void
+  onDelete: (id: number) => void
+  inputCls: string
+}) {
+  const [draft, setDraft] = useState(critere)
+  const changed = JSON.stringify(draft) !== JSON.stringify(critere)
+  const set = (k: keyof Critere, v: string) => setDraft({ ...draft, [k]: v })
+  const k = critere.kind
+  return (
+    <div className="rounded-lg border border-stone-200 p-2 space-y-1.5 bg-stone-50">
+      {k !== 'depot' && (
+        <div className="flex gap-2">
+          {k === 'accepte' && <input value={draft.icon} onChange={e => set('icon', e.target.value)} className={`${inputCls} !w-14 text-center`} placeholder="🔌" />}
+          <input value={draft.label} onChange={e => set('label', e.target.value)} className={inputCls}
+                 placeholder={k === 'accepte' ? 'Catégorie' : 'Objet refusé'} />
+        </div>
+      )}
+      <input value={draft.detail} onChange={e => set('detail', e.target.value)} className={inputCls}
+             placeholder={k === 'accepte' ? "Exemples d'objets" : k === 'refuse' ? 'Raison du refus' : 'Condition de dépôt'} />
+      {k === 'accepte' && (
+        <input value={draft.condition} onChange={e => set('condition', e.target.value)} className={inputCls} placeholder="Condition (ex : propre, en bon état)" />
+      )}
+      <div className="flex justify-end gap-3 text-xs font-bold">
+        <button type="button" onClick={() => onDelete(critere.id)}
+                className="px-2.5 py-1 rounded-lg border" style={{ color: c.orange, borderColor: c.orange }}>🗑 Retirer</button>
+        <button type="button" disabled={!changed} onClick={() => onSave(critere.id, draft)}
+                className="px-2.5 py-1 rounded-lg text-white"
+                style={{ background: changed ? c.vert : '#cfcfcf' }}>{changed ? '💾 Enregistrer' : '✓ À jour'}</button>
+      </div>
+    </div>
+  )
+}
+
+/* ── Groupe de critères : lecture + mode « éditer la liste » ── */
+function CritereGroup({ kind, titre, color, items, itemLabel, onSave, onDelete, onAdd, inputCls }: {
+  kind: Critere['kind']
+  titre: string
+  color: string
+  items: Critere[]
+  itemLabel: string
+  onSave: (id: number, data: Partial<Critere>) => void
+  onDelete: (id: number) => void
+  onAdd: (data: Partial<Critere> & { kind: Critere['kind'] }) => Promise<boolean>
+  inputCls: string
+}) {
+  const [editing, setEditing] = useState(false)
+  const [nouveau, setNouveau] = useState({ icon: '', label: '', detail: '', condition: '' })
+  const vide = kind === 'depot' ? !nouveau.detail.trim() : !nouveau.label.trim()
+
+  const ajouter = async () => {
+    if (vide) return
+    if (await onAdd({ kind, ...nouveau })) setNouveau({ icon: '', label: '', detail: '', condition: '' })
+  }
+
+  return (
+    <div className="rounded-xl border-2 p-3 space-y-3" style={{ borderColor: `${color}55` }}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-bold text-sm" style={{ color }}>{titre} <span className="text-stone-400 font-normal">({items.length})</span></p>
+        <button type="button" onClick={() => setEditing(!editing)}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold text-white whitespace-nowrap shrink-0"
+                style={{ background: editing ? '#6b7280' : color }}>
+          {editing ? '✓ Terminer' : '✏️ Éditer la liste'}
+        </button>
+      </div>
+
+      {!editing && (
+        items.length === 0
+          ? <p className="text-xs text-stone-400">Liste vide. Cliquez sur « Éditer la liste » pour ajouter.</p>
+          : <ul className="text-xs text-stone-700 space-y-1">
+              {items.map(it => (
+                <li key={it.id}>
+                  {kind === 'accepte' && `${it.icon} `}<strong>{it.label}</strong>
+                  {it.label && it.detail && ' — '}{it.detail}
+                  {it.condition && <span className="text-stone-400"> (condition : {it.condition})</span>}
+                </li>
+              ))}
+            </ul>
+      )}
+
+      {editing && (
+        <div className="space-y-3">
+          <div className="rounded-lg p-2.5 space-y-1.5" style={{ background: `${color}12` }}>
+            <p className="text-xs font-bold" style={{ color }}>➕ {itemLabel}</p>
+            {kind !== 'depot' && (
+              <div className="flex gap-2">
+                {kind === 'accepte' && <input value={nouveau.icon} onChange={e => setNouveau({ ...nouveau, icon: e.target.value })} className={`${inputCls} !w-14 text-center`} placeholder="📦" />}
+                <input value={nouveau.label} onChange={e => setNouveau({ ...nouveau, label: e.target.value })} className={inputCls}
+                       placeholder={kind === 'accepte' ? 'Nom de la catégorie *' : "Nom de l'objet refusé *"} />
+              </div>
+            )}
+            <input value={nouveau.detail} onChange={e => setNouveau({ ...nouveau, detail: e.target.value })} className={inputCls}
+                   placeholder={kind === 'accepte' ? "Exemples d'objets" : kind === 'refuse' ? 'Raison du refus' : 'Texte de la condition *'} />
+            {kind === 'accepte' && (
+              <input value={nouveau.condition} onChange={e => setNouveau({ ...nouveau, condition: e.target.value })} className={inputCls} placeholder="Condition (ex : propre, en bon état)" />
+            )}
+            <button type="button" onClick={ajouter} disabled={vide}
+                    className="w-full py-2 rounded-lg text-white text-xs font-bold"
+                    style={{ background: vide ? '#cfcfcf' : color }}>➕ Ajouter à la liste</button>
+          </div>
+
+          {items.length > 0 && <p className="text-[11px] text-stone-400">Modifiez un texte puis cliquez sur « Enregistrer », ou retirez la ligne :</p>}
+          {items.map(cr => (
+            <CritereRow key={`${cr.id}-${cr.label}-${cr.detail}-${cr.condition}-${cr.icon}`} critere={cr}
+                        onSave={onSave} onDelete={onDelete} inputCls={inputCls} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 /* ── États d'un objet ── */
@@ -63,7 +197,10 @@ function StatusBadge({ status }: { status: string }) {
 export function App() {
   const [currentRoute, setCurrentRoute] = useState<'/' | '/benevole' | '/admin'>('/')
   const [benevoleView, setBenevoleView] = useState<'dons'>('dons')
-  const [adminView, setAdminView] = useState<'dons' | 'supervision'>('dons')
+  const [adminView, setAdminView] = useState<'dons' | 'supervision' | 'infos'>('dons')
+  const [infos, setInfos] = useState<Infos | null>(null)
+  const [criteres, setCriteres] = useState<Critere[]>([])
+  const [horairesEdit, setHorairesEdit] = useState<{ jour: string; plage: string }[]>([])
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -86,12 +223,17 @@ export function App() {
 
   const fetchAllData = async () => {
     try {
-      const [resDons, resStats] = await Promise.all([
+      const [resDons, resStats, resInfos, resCriteres] = await Promise.all([
         fetch('/api/dons/').then(r => r.json()),
         fetch('/api/stats/').then(r => r.json()),
+        fetch('/api/infos/').then(r => r.json()),
+        fetch('/api/criteres/').then(r => r.json()),
       ])
       setDons(resDons)
       setStats(resStats)
+      setInfos(resInfos)
+      setCriteres(resCriteres)
+      setHorairesEdit(resInfos.horaires)
     } catch {
       console.warn('Backend Django en cours de synchronisation...')
     }
@@ -107,6 +249,81 @@ export function App() {
         body: JSON.stringify({ status: newStatus }),
       })
       if (res.ok) { showToast(`État mis à jour : ${DON_STATUTS.find(s => s.key === newStatus)?.label ?? newStatus}`); fetchAllData() }
+    } catch { showToast('Erreur réseau') }
+  }
+
+  const handleSaveInfos = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const f = e.currentTarget.elements
+    const val = (n: string) => (f.namedItem(n) as HTMLInputElement).value
+    try {
+      const res = await fetch('/api/infos/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adresse: val('adresse'), acces: val('acces'), telephone: val('telephone'),
+          email: val('email'), jours_fermes: val('jours_fermes'), horaires: horairesEdit,
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setInfos(data); setHorairesEdit(data.horaires)
+        showToast('Informations publiques mises à jour')
+      } else showToast('Enregistrement impossible')
+    } catch { showToast('Erreur réseau') }
+  }
+
+  const handleAddFermeture = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = e.currentTarget
+    const date = (form.elements.namedItem('date') as HTMLInputElement).value
+    const motif = (form.elements.namedItem('motif') as HTMLInputElement).value
+    try {
+      const res = await fetch('/api/fermetures/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, motif }),
+      })
+      if (res.ok) { showToast('Jour de fermeture ajouté'); form.reset(); fetchAllData() }
+      else showToast('Date invalide')
+    } catch { showToast('Erreur réseau') }
+  }
+
+  const handleDeleteFermeture = async (id: number) => {
+    try {
+      const res = await fetch(`/api/fermetures/${id}/`, { method: 'DELETE' })
+      if (res.ok) { showToast('Fermeture retirée'); fetchAllData() }
+    } catch { showToast('Erreur réseau') }
+  }
+
+  const fmtJour = (iso: string) =>
+    new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  const handleSaveCritere = async (id: number, data: Partial<Critere>) => {
+    try {
+      const res = await fetch(`/api/criteres/${id}/`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+      })
+      if (res.ok) { showToast('Critère enregistré'); fetchAllData() } else showToast('Enregistrement impossible')
+    } catch { showToast('Erreur réseau') }
+  }
+
+  const handleAddCritere = async (data: Partial<Critere> & { kind: Critere['kind'] }) => {
+    try {
+      const res = await fetch('/api/criteres/', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+      })
+      if (res.ok) { showToast('Ajouté à la liste'); fetchAllData(); return true }
+      showToast("Ajout impossible")
+    } catch { showToast('Erreur réseau') }
+    return false
+  }
+
+  const handleDeleteCritere = async (id: number) => {
+    if (!confirm('Supprimer ce critère ?')) return
+    try {
+      const res = await fetch(`/api/criteres/${id}/`, { method: 'DELETE' })
+      if (res.ok) { showToast('Critère supprimé'); fetchAllData() }
     } catch { showToast('Erreur réseau') }
   }
 
@@ -203,6 +420,13 @@ export function App() {
           {/* Actions droite */}
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setCurrentRoute('/admin')}
+              className="hidden md:flex px-3 py-1.5 rounded-lg text-xs font-bold border items-center gap-1.5"
+              style={{ background: c.jauneCl, color: c.brun, borderColor: c.jaune }}
+            >
+              👑 Espace Martine
+            </button>
+            <button
               onClick={() => setCurrentRoute('/benevole')}
               className="px-3 py-1.5 rounded-lg text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5"
               style={{ background: c.vert }}
@@ -255,7 +479,7 @@ export function App() {
 
       {/* Toast notification */}
       {toast && (
-        <div className="fixed bottom-20 sm:bottom-5 right-4 left-4 sm:left-auto sm:right-5 z-50 text-white px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center gap-2"
+        <div className="fixed bottom-20 right-4 left-4 sm:left-auto sm:right-5 z-50 text-white px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center gap-2"
              style={{ background: c.vert }}>
           <span>✅</span> <span>{toast}</span>
         </div>
@@ -268,28 +492,43 @@ export function App() {
         <main className="max-w-7xl w-full mx-auto px-4 py-6 space-y-8 flex-1">
 
           {/* Hero */}
-          <div className="rounded-2xl overflow-hidden relative" style={{ background: `linear-gradient(135deg, ${c.vert} 0%, #1e4d2b 60%, #3a2010 100%)` }}>
-            <div className="px-6 py-8 sm:px-10 sm:py-12 text-white space-y-4 relative z-10">
-              <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
-                    style={{ background: c.jaune, color: c.brun }}>
-                🌱 Quartier Solidaire · Zéro Déchet
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black leading-tight">
-                Donnez une seconde vie<br />à vos objets du quotidien
-              </h2>
-              <p className="text-sm opacity-80 max-w-md">
-                Collecte solidaire, réemploi et ateliers participatifs de réparation — gratuits pour tous.
-              </p>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <a href="#horaires"
-                   className="px-4 py-2 rounded-lg text-white font-bold text-xs shadow-sm transition hover:opacity-90"
-                   style={{ background: c.orange }}>
-                  ⏰ Horaires &amp; accès
-                </a>
-                <a href="#dons"
-                   className="px-4 py-2 rounded-lg font-bold text-xs border border-white/30 text-white hover:bg-white/10 transition">
-                  📦 Guide des dons
-                </a>
+          <div className="rounded-2xl overflow-hidden border border-stone-200 shadow-sm"
+               style={{ background: `linear-gradient(120deg, #fffdf8 0%, ${c.jauneCl} 55%, ${c.vertClair} 100%)` }}>
+            <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-2 px-6 pt-8 sm:px-10 md:pt-0">
+              <div className="md:col-span-3 space-y-4 md:py-12">
+                <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
+                      style={{ background: c.jaune, color: c.brun }}>
+                  🌱 Quartier solidaire · Zéro déchet
+                </span>
+                <h2 className="text-2xl sm:text-4xl font-black leading-tight" style={{ color: c.vert }}>
+                  Ici, rien ne se perd,<br />tout se partage&nbsp;!
+                </h2>
+                <p className="text-sm sm:text-base text-stone-700 leading-relaxed max-w-xl">
+                  La Ressourcerie du Quartier, c'est la bande de voisins qui donne une seconde vie à tout ce que vous n'utilisez plus :
+                  une lampe, une chaise, un grille-pain… On les récupère, on les répare dans la bonne humeur, puis on les revend
+                  à petit prix. Résultat : moins de déchets, des économies pour tous et un quartier qui se
+                  connaît mieux.
+                </p>
+                <p className="text-sm sm:text-base text-stone-700 leading-relaxed max-w-xl">
+                  Venez donner, dénicher une bonne affaire, ou pousser la porte d'un de nos <strong>ateliers de réparation</strong> :
+                  on vous y apprend à réparer, café et sourires compris.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <a href="#horaires"
+                     className="px-4 py-2.5 rounded-lg text-white font-bold text-xs shadow-sm transition hover:opacity-90"
+                     style={{ background: c.orange }}>
+                    ⏰ Horaires &amp; accès
+                  </a>
+                  <a href="#dons"
+                     className="px-4 py-2.5 rounded-lg font-bold text-xs border transition hover:bg-white"
+                     style={{ color: c.vert, borderColor: c.vert }}>
+                    📦 Que peut-on donner ?
+                  </a>
+                </div>
+              </div>
+              <div className="md:col-span-2 flex justify-center md:justify-end self-end">
+                <img src="/martine.png" alt="Martine, présidente de la Ressourcerie du Quartier, tenant le panneau de l'association"
+                     className="w-64 sm:w-80 md:w-full max-w-sm h-auto drop-shadow-lg" />
               </div>
             </div>
           </div>
@@ -297,57 +536,131 @@ export function App() {
           {/* Horaires & Accès */}
           <section id="horaires" className="space-y-3">
             <h3 className="text-lg font-bold" style={{ color: c.brun }}>⏰ Horaires &amp; Accès</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className={`${card} p-4`}>
                 <h4 className="font-bold text-xs mb-2.5" style={{ color: c.vert }}>📅 Boutique &amp; Dépôts</h4>
                 <ul className="text-xs space-y-1.5 text-stone-700">
-                  <li className="flex justify-between border-b border-stone-100 pb-1"><span>Mercredi</span><strong>14h00 – 18h30</strong></li>
-                  <li className="flex justify-between border-b border-stone-100 pb-1"><span>Vendredi</span><strong>14h00 – 19h00</strong></li>
-                  <li className="flex justify-between border-b border-stone-100 pb-1"><span>Samedi</span><strong>10h00 – 18h00</strong></li>
-                  <li className="flex justify-between text-stone-400"><span>Dim., Lun., Mar.</span><span>Fermé</span></li>
+                  {infos?.horaires.map(h => (
+                    <li key={h.jour} className="flex justify-between border-b border-stone-100 pb-1"><span>{h.jour}</span><strong>{h.plage}</strong></li>
+                  ))}
+                  {infos?.jours_fermes && (
+                    <li className="flex justify-between text-stone-400"><span>{infos.jours_fermes}</span><span>Fermé</span></li>
+                  )}
                 </ul>
+                {infos && infos.fermetures.length > 0 && (
+                  <div className="mt-3 rounded-lg p-2 text-xs" style={{ background: c.orangeCl, color: c.orange }}>
+                    <p className="font-bold mb-1">⚠️ Fermetures exceptionnelles</p>
+                    <ul className="space-y-0.5">
+                      {infos.fermetures.map(f => (
+                        <li key={f.id}><span className="capitalize">{fmtJour(f.date)}</span>{f.motif && ` · ${f.motif}`}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {infos && (
+                  <p className="text-[10px] text-stone-400 mt-2">
+                    Mis à jour le {new Date(infos.updated_at).toLocaleDateString('fr-FR')}
+                  </p>
+                )}
               </div>
               <div className={`${card} p-4`}>
                 <h4 className="font-bold text-xs mb-2" style={{ color: c.brun }}>📍 Nous trouver</h4>
-                <p className="text-xs font-semibold text-stone-700">14 rue de la Solidarité, 75000 Paris</p>
-                <p className="text-xs text-stone-500 mt-1">Métro Ligne 9 · Vélib' en face</p>
-                <p className="text-xs text-stone-600 mt-2">📞 01 42 00 00 00</p>
+                <p className="text-xs font-semibold text-stone-700">{infos?.adresse}</p>
+                {infos?.acces && <p className="text-xs text-stone-500 mt-1">{infos.acces}</p>}
+                {infos?.telephone && <p className="text-xs text-stone-600 mt-2">📞 <a href={`tel:${infos.telephone.replace(/\s/g, '')}`}>{infos.telephone}</a></p>}
+                {infos?.email && <p className="text-xs text-stone-600 mt-1">✉️ <a href={`mailto:${infos.email}`} className="underline">{infos.email}</a></p>}
               </div>
-              <div className={`${card} p-4 flex flex-col justify-between`}>
-                <div>
-                  <h4 className="font-bold text-xs mb-1" style={{ color: c.orange }}>🤝 Devenir Bénévole</h4>
-                  <p className="text-xs text-stone-600 mt-1">Rejoignez l'équipe et partagez vos compétences en réparation !</p>
-                </div>
-                <button onClick={() => setCurrentRoute('/benevole')}
-                        className="w-full py-2 rounded-lg text-white text-xs font-bold mt-4"
-                        style={{ background: c.vert }}>
-                  Accéder à l'espace bénévoles
-                </button>
+            </div>
+          </section>
+
+          {/* Devenir bénévole */}
+          <section id="benevoles" className="rounded-2xl overflow-hidden text-white"
+                   style={{ background: `linear-gradient(135deg, ${c.vert} 0%, #1e4d2b 100%)` }}>
+            <div className="px-6 py-8 sm:px-10 sm:py-10 space-y-5">
+              <div className="space-y-2 max-w-2xl">
+                <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
+                      style={{ background: c.jaune, color: c.brun }}>🤝 On a besoin de vous</span>
+                <h3 className="text-2xl sm:text-3xl font-black leading-tight">Et si vous nous rejoigniez&nbsp;?</h3>
+                <p className="text-sm sm:text-base opacity-90 leading-relaxed">
+                  Pas besoin d'être bricoleur ni disponible tous les jours : chez nous, chacun donne le temps qu'il peut,
+                  et repart avec le sourire.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { icon: '🔧', titre: 'Apprenez de nouveaux gestes', texte: "Réparer, trier, relooker : nos bénévoles vous montrent, vous transmettez ensuite." },
+                  { icon: '☕', titre: 'Rencontrez vos voisins', texte: 'Une équipe chaleureuse, des permanences conviviales et beaucoup de rires.' },
+                  { icon: '🌍', titre: 'Agissez concrètement', texte: "Chaque objet sauvé, c'est un déchet évité et un foyer qui économise." },
+                ].map(b => (
+                  <div key={b.titre} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.12)' }}>
+                    <p className="text-2xl">{b.icon}</p>
+                    <p className="font-bold text-sm mt-1">{b.titre}</p>
+                    <p className="text-xs opacity-85 mt-1 leading-relaxed">{b.texte}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <a href={`mailto:${infos?.email ?? ""}?subject=Devenir%20b%C3%A9n%C3%A9vole`}
+                        className="inline-block px-6 py-3 rounded-xl font-black text-sm shadow-lg transition hover:scale-105"
+                        style={{ background: c.jaune, color: c.brun }}>
+                  🙋 Devenir bénévole
+                </a>
+                <span className="text-xs opacity-80">Moins de 2 minutes · sans engagement</span>
               </div>
             </div>
           </section>
 
           {/* Guide des dons */}
-          <section id="dons" className="space-y-3">
-            <h3 className="text-lg font-bold" style={{ color: c.brun }}>📦 Que peut-on donner ?</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { icon: '🔌', label: 'Petit électroménager', detail: 'Aspirateurs, grille-pain…', ok: true },
-                { icon: '🪑', label: 'Mobilier & Déco', detail: 'En bon état, démontable', ok: true },
-                { icon: '👕', label: 'Vêtements propres', detail: 'Toutes tailles acceptées', ok: true },
-                { icon: '🖨️', label: 'Gros électroménager', detail: 'Hors liste, désolé', ok: false },
-              ].map(item => (
-                <div key={item.label} className={`${card} p-3 text-center`}
-                     style={{ borderLeft: `3px solid ${item.ok ? c.vert : c.orange}` }}>
-                  <div className="text-2xl mb-1">{item.icon}</div>
-                  <p className="text-xs font-bold text-stone-800">{item.label}</p>
-                  <p className="text-[10px] text-stone-400 mt-0.5">{item.detail}</p>
-                  <span className="text-[9px] font-bold mt-1 inline-block"
-                        style={{ color: item.ok ? c.vert : c.orange }}>
-                    {item.ok ? '✔ Accepté' : '✕ Refusé'}
-                  </span>
+          <section id="dons" className="space-y-4">
+            <div>
+              <h3 className="text-lg font-bold" style={{ color: c.brun }}>📦 Que peut-on donner ?</h3>
+              <p className="text-xs text-stone-500 mt-0.5">Vérifiez en 30 secondes si votre objet convient avant de vous déplacer.</p>
+            </div>
+
+            {/* Acceptés */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-bold" style={{ color: c.vert }}>✔ Nous acceptons</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {criteres.filter(x => x.kind === 'accepte').map(item => (
+                  <div key={item.id} className={`${card} p-3`} style={{ borderLeft: `4px solid ${c.vert}` }}>
+                    <p className="text-sm font-bold text-stone-800">{item.icon} {item.label}</p>
+                    <p className="text-xs text-stone-600 mt-1">{item.detail}</p>
+                    {item.condition && <p className="text-[11px] mt-1.5 font-semibold" style={{ color: c.vertMed }}>Condition : {item.condition}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Refusés */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-bold" style={{ color: c.orange }}>✕ Nous refusons</h4>
+              <div className="rounded-xl p-3" style={{ background: c.orangeCl, border: `1px solid ${c.orange}33` }}>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-stone-700">
+                  {criteres.filter(x => x.kind === 'refuse').map(r => (
+                    <li key={r.id}><strong style={{ color: c.orange }}>✕ {r.label}</strong>{r.detail && ` — ${r.detail}`}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Conditions de dépôt */}
+            <div className={`${card} p-4 space-y-2`}>
+              <h4 className="text-sm font-bold" style={{ color: c.brun }}>📋 Conditions de dépôt</h4>
+              <ol className="text-xs text-stone-700 space-y-1 list-decimal list-inside">
+                {criteres.filter(x => x.kind === 'depot').map(cd => <li key={cd.id}>{cd.detail}</li>)}
+              </ol>
+              {infos && (
+                <div className="text-xs rounded-lg p-2" style={{ background: c.vertClair, color: c.vert }}>
+                  <strong>Déposez aux heures d'ouverture :</strong>{' '}
+                  {infos.horaires.map(h => `${h.jour} ${h.plage}`).join(' · ')}
+                  <br />📍 {infos.adresse}
+                  {infos.fermetures.length > 0 && (
+                    <span className="block mt-1" style={{ color: c.orange }}>
+                      ⚠️ Fermé exceptionnellement : {infos.fermetures.map(f => fmtJour(f.date)).join(', ')}
+                    </span>
+                  )}
                 </div>
-              ))}
+              )}
             </div>
           </section>
         </main>
@@ -357,7 +670,7 @@ export function App() {
           VUE 2 : ESPACE BÉNÉVOLE (/benevole)
       ══════════════════════════════════════════════ */}
       {currentRoute === '/benevole' && (
-        <main className="max-w-7xl w-full mx-auto px-4 py-4 space-y-4 flex-1 pb-24 md:pb-8">
+        <main className="max-w-7xl w-full mx-auto px-4 py-4 space-y-4 flex-1 pb-24">
 
           {/* Header sous-vue */}
           <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
@@ -473,7 +786,7 @@ export function App() {
           VUE 3 : ESPACE MARTINE (/admin)
       ══════════════════════════════════════════════ */}
       {currentRoute === '/admin' && (
-        <main className="max-w-7xl w-full mx-auto px-4 py-4 space-y-4 flex-1 pb-24 md:pb-8">
+        <main className="max-w-7xl w-full mx-auto px-4 py-4 space-y-4 flex-1 pb-24">
 
           {/* Header admin */}
           <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
@@ -483,6 +796,7 @@ export function App() {
               </span>
               <h2 className="text-base sm:text-xl font-black" style={{ color: c.brun }}>
                 {adminView === 'dons' ? 'Gestion des Dons'
+                  : adminView === 'infos' ? 'Informations publiques'
                   : 'Supervision & Statistiques'}
               </h2>
             </div>
@@ -542,6 +856,81 @@ export function App() {
             </div>
           )}
 
+          {/* Admin : Informations publiques (horaires, adresse, contact) */}
+          {adminView === 'infos' && infos && (
+            <div className={`${card} p-4 space-y-3 text-xs`}>
+              <h4 className="font-bold text-stone-800">🚫 Ajouter un jour de fermeture</h4>
+              <form onSubmit={handleAddFermeture} className="flex flex-wrap gap-2">
+                <input name="date" type="date" required min={new Date().toISOString().slice(0, 10)} className={`${inputCls} !w-auto`} />
+                <input name="motif" placeholder="Motif (ex : jour férié)" className={`${inputCls} flex-1 min-w-[140px]`} />
+                <button type="submit" className="px-3 py-2 rounded-lg text-white font-bold" style={{ background: c.orange }}>
+                  Fermer ce jour
+                </button>
+              </form>
+              {infos.fermetures.length > 0 ? (
+                <ul className="space-y-1">
+                  {infos.fermetures.map(f => (
+                    <li key={f.id} className="flex items-center justify-between rounded-lg px-2 py-1" style={{ background: c.orangeCl }}>
+                      <span><span className="capitalize font-semibold">{fmtJour(f.date)}</span>{f.motif && ` · ${f.motif}`}</span>
+                      <button onClick={() => handleDeleteFermeture(f.id)} style={{ color: c.orange }} className="font-bold px-1">✕</button>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-stone-400">Aucune fermeture exceptionnelle à venir.</p>}
+            </div>
+          )}
+
+          {adminView === 'infos' && infos && (
+            <form onSubmit={handleSaveInfos} className={`${card} p-4 space-y-3 text-xs`}>
+              <p className="text-stone-500">Ces informations s'affichent sur le site public, sans connexion.</p>
+              <input name="adresse" required defaultValue={infos.adresse} placeholder="Adresse" className={inputCls} />
+              <input name="acces" defaultValue={infos.acces} placeholder="Accès / transports" className={inputCls} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input name="telephone" defaultValue={infos.telephone} placeholder="Téléphone" className={inputCls} />
+                <input name="email" type="email" defaultValue={infos.email} placeholder="Email" className={inputCls} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="font-bold text-stone-800">Horaires d'ouverture</p>
+                {horairesEdit.map((h, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input value={h.jour} placeholder="Jour"
+                           onChange={e => setHorairesEdit(horairesEdit.map((x, j) => j === i ? { ...x, jour: e.target.value } : x))}
+                           className={inputCls} />
+                    <input value={h.plage} placeholder="14h00 – 18h30"
+                           onChange={e => setHorairesEdit(horairesEdit.map((x, j) => j === i ? { ...x, plage: e.target.value } : x))}
+                           className={inputCls} />
+                    <button type="button" onClick={() => setHorairesEdit(horairesEdit.filter((_, j) => j !== i))}
+                            style={{ color: c.orange }} className="font-bold px-1">✕</button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setHorairesEdit([...horairesEdit, { jour: '', plage: '' }])}
+                        className="font-semibold" style={{ color: c.vert }}>+ Ajouter un jour</button>
+              </div>
+              <input name="jours_fermes" defaultValue={infos.jours_fermes} placeholder="Jours de fermeture (ex : Dim., Lun., Mar.)" className={inputCls} />
+              <button type="submit" className="w-full py-2 rounded-lg text-white font-bold" style={{ background: c.vert }}>
+                Enregistrer
+              </button>
+            </form>
+          )}
+
+          {adminView === 'infos' && (
+            <div className={`${card} p-4 space-y-4 text-xs`}>
+              <div>
+                <h4 className="font-bold text-sm text-stone-800">📦 Critères de dons</h4>
+                <p className="text-stone-500">Ce que les habitants voient sur le site public. Cliquez sur « Éditer la liste » pour ajouter ou retirer des éléments.</p>
+              </div>
+              {([
+                { kind: 'accepte', titre: '✔ Objets acceptés', color: c.vert, itemLabel: 'Ajouter un objet accepté' },
+                { kind: 'refuse', titre: '✕ Objets refusés', color: c.orange, itemLabel: 'Ajouter un objet refusé' },
+                { kind: 'depot', titre: '📋 Conditions de dépôt', color: c.brun, itemLabel: 'Ajouter une condition' },
+              ] as const).map(g => (
+                <CritereGroup key={g.kind} kind={g.kind} titre={g.titre} color={g.color} itemLabel={g.itemLabel}
+                              items={criteres.filter(x => x.kind === g.kind)}
+                              onSave={handleSaveCritere} onDelete={handleDeleteCritere} onAdd={handleAddCritere} inputCls={inputCls} />
+              ))}
+            </div>
+          )}
+
           {/* Admin : Supervision & KPIs */}
           {adminView === 'supervision' && stats && (
             <div className="space-y-4">
@@ -566,7 +955,7 @@ export function App() {
 
       {/* Bottom Nav Bénévoles */}
       {currentRoute === '/benevole' && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 py-1.5 px-2 flex justify-around shadow-lg">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 py-1.5 px-2 flex justify-around md:justify-center md:gap-14 shadow-lg">
           {[
             { key: 'dons',     icon: '📦', label: 'Dons' },
           ].map(item => (
@@ -583,9 +972,10 @@ export function App() {
 
       {/* Bottom Nav Admin Martine */}
       {currentRoute === '/admin' && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 py-1.5 px-2 flex justify-around shadow-lg">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 py-1.5 px-2 flex justify-around md:justify-center md:gap-14 shadow-lg">
           {[
             { key: 'dons',       icon: '📦', label: 'Dons' },
+            { key: 'infos',      icon: 'ℹ️', label: 'Infos' },
             { key: 'supervision',icon: '📊', label: 'Stats' },
           ].map(item => (
             <button key={item.key}
