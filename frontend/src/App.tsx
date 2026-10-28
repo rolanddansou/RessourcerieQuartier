@@ -6,13 +6,13 @@ interface DonItem {
   db_id: number
   name: string
   category: string
-  status: 'stockage' | 'reparation' | 'vente' | 'vendu'
+  status: 'recu' | 'a_reparer' | 'repare' | 'vente' | 'vendu'
   date: string
   notes: string
 }
 
 interface Stats {
-  dons: { total: number; stockage: number; reparation: number; vente: number; vendu: number }
+  dons: { total: number; recu: number; a_reparer: number; repare: number; vente: number; vendu: number }
 }
 
 /* ── Palette tirée du logo ── */
@@ -29,12 +29,26 @@ const c = {
   brunCl:   '#f2ebe3',
 }
 
+/* ── États d'un objet ── */
+const DON_STATUTS = [
+  { key: 'recu',      label: '📥 Reçu' },
+  { key: 'a_reparer', label: '🔧 À réparer' },
+  { key: 'repare',    label: '🛠️ Réparé' },
+  { key: 'vente',     label: '🏷️ Mis en vente' },
+  { key: 'vendu',     label: '✅ Vendu' },
+]
+
+function StatutOptions({ sans = [] }: { sans?: string[] }) {
+  return <>{DON_STATUTS.filter(s => !sans.includes(s.key)).map(s => <option key={s.key} value={s.key}>{s.label}</option>)}</>
+}
+
 /* ── Badge statut don ── */
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; bg: string; color: string }> = {
-    stockage:  { label: '📦 Stockage',     bg: c.brunCl,  color: c.brun   },
-    reparation:{ label: '🔧 Réparation',   bg: c.jauneCl, color: '#92570a' },
-    vente:     { label: '🏷️ En vente',     bg: c.vertClair,color: c.vert  },
+    recu:      { label: '📥 Reçu',         bg: c.brunCl,  color: c.brun   },
+    a_reparer: { label: '🔧 À réparer',    bg: c.jauneCl, color: '#92570a' },
+    repare:    { label: '🛠️ Réparé',       bg: '#eaf1fb', color: '#1e4f8a' },
+    vente:     { label: '🏷️ Mis en vente',     bg: c.vertClair,color: c.vert  },
     vendu:     { label: '✅ Vendu',         bg: '#e6f4f1', color: '#1a6b57' },
   }
   const s = map[status] ?? { label: status, bg: '#f0f0f0', color: '#555' }
@@ -92,7 +106,7 @@ export function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       })
-      if (res.ok) { showToast(`Statut mis à jour : ${newStatus}`); fetchAllData() }
+      if (res.ok) { showToast(`État mis à jour : ${DON_STATUTS.find(s => s.key === newStatus)?.label ?? newStatus}`); fetchAllData() }
     } catch { showToast('Erreur réseau') }
   }
 
@@ -393,9 +407,7 @@ export function App() {
                       <option value="Autre">Autre</option>
                     </select>
                     <select name="status" className={inputCls}>
-                      <option value="stockage">📦 Stockage</option>
-                      <option value="reparation">🔧 Réparation</option>
-                      <option value="vente">🏷️ Présenté client</option>
+                      <StatutOptions sans={['vendu']} />
                     </select>
                   </div>
                   <textarea name="notes" rows={2} placeholder="Notes / Travaux à prévoir (optionnel)" className={inputCls} />
@@ -414,10 +426,7 @@ export function App() {
                 <div className="flex flex-wrap gap-1.5 text-[11px]">
                   {[
                     { key: 'tous', label: 'Tous' },
-                    { key: 'stockage', label: '📦 Stock' },
-                    { key: 'reparation', label: '🔧 Réparation' },
-                    { key: 'vente', label: '🏷️ Vente' },
-                    { key: 'vendu', label: '✅ Vendus' },
+                    ...DON_STATUTS,
                   ].map(f => (
                     <button key={f.key} onClick={() => setItemFilter(f.key)}
                             className="px-2 py-0.5 rounded-lg font-semibold transition"
@@ -432,7 +441,7 @@ export function App() {
 
               <div className="space-y-2">
                 {filteredDons.map(item => (
-                  <div key={item.id} className={`${card} p-3 flex items-center justify-between gap-2 text-xs`}>
+                  <div key={item.id} className={`${card} p-3 flex items-center justify-between gap-2 text-xs ${item.status === 'vendu' ? 'opacity-50' : ''}`}>
                     <div>
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono text-[10px] text-stone-400">{item.id}</span>
@@ -446,10 +455,7 @@ export function App() {
                       className="text-xs font-bold rounded-lg px-2 py-1 border border-stone-200"
                       style={{ background: c.beige, color: c.brun }}
                     >
-                      <option value="stockage">📦 Stockage</option>
-                      <option value="reparation">🔧 Réparation</option>
-                      <option value="vente">🏷️ Vente</option>
-                      <option value="vendu">✅ Vendu</option>
+                      <StatutOptions />
                     </select>
                   </div>
                 ))}
@@ -504,9 +510,7 @@ export function App() {
                       <option>Vêtements &amp; Textile</option>
                     </select>
                     <select name="status" className={inputCls}>
-                      <option value="stockage">📦 Stockage</option>
-                      <option value="reparation">🔧 Réparation</option>
-                      <option value="vente">🏷️ En vente</option>
+                      <StatutOptions sans={['vendu']} />
                     </select>
                   </div>
                   <div className="flex justify-end gap-2">
@@ -517,7 +521,7 @@ export function App() {
                 </form>
               )}
               {dons.map(item => (
-                <div key={item.id} className={`${card} p-3 flex justify-between items-center text-xs`}>
+                <div key={item.id} className={`${card} p-3 flex justify-between items-center text-xs ${item.status === 'vendu' ? 'opacity-50' : ''}`}>
                   <div>
                     <strong className="text-stone-800">{item.name}</strong>
                     <p className="text-[10px] text-stone-400">{item.id} · {item.category} · {item.date}</p>
@@ -529,10 +533,7 @@ export function App() {
                       className="text-xs font-bold rounded-lg px-2 py-1 border border-stone-200"
                       style={{ background: c.beige, color: c.brun }}
                     >
-                      <option value="stockage">📦 Stockage</option>
-                      <option value="reparation">🔧 Réparation</option>
-                      <option value="vente">🏷️ Vente</option>
-                      <option value="vendu">✅ Vendu</option>
+                      <StatutOptions />
                     </select>
                     <button onClick={() => handleDeleteDon(item.db_id)} style={{ color: c.orange }} className="font-bold p-1">✕</button>
                   </div>
@@ -544,10 +545,11 @@ export function App() {
           {/* Admin : Supervision & KPIs */}
           {adminView === 'supervision' && stats && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center">
                 {[
-                  { label: 'Stockage',     val: stats.dons.stockage,   color: c.brun   },
-                  { label: 'En réparation',val: stats.dons.reparation,  color: '#92570a' },
+                  { label: 'Reçus',        val: stats.dons.recu,       color: c.brun   },
+                  { label: 'À réparer',    val: stats.dons.a_reparer,  color: '#92570a' },
+                  { label: 'Réparés',      val: stats.dons.repare,     color: '#1e4f8a' },
                   { label: 'En vente',     val: stats.dons.vente,       color: c.vert   },
                   { label: 'Vendus',       val: stats.dons.vendu,       color: '#1a6b57' },
                 ].map(kpi => (
