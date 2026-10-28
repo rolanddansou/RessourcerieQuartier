@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import logo from '../assets/logo.png'
-import mamie from '../assets/mamie.png'
 import './login.css'
 
 export default function Login() {
@@ -44,7 +43,6 @@ export default function Login() {
         <img className="login-logo" src={logo} alt="La Ressourcerie du Quartier" />
         <p className="eyebrow">RÉEMPLOYER · PARTAGER · TRANSMETTRE</p>
         <h1>Espace bénévoles</h1>
-        <img className="login-martine" src={mamie} alt="Martine, la présidente de la Ressourcerie" />
 
         <form onSubmit={handleSubmit}>
           <label htmlFor="username">Identifiant</label>

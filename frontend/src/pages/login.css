@@ -25,18 +25,6 @@
 .login-logo { display: block; width: 48%; max-width: 185px; margin: 0 auto 8px; }
 .login-card .eyebrow { text-align: center; margin: 0; }
 .login-card h1 { font-size: 1.6rem; text-align: center; margin: 8px 0 6px; letter-spacing: -.02em; }
-.login-martine {
-  display: block;
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  object-position: center 20%;
-  border: 4px solid #f2b705;
-  border-radius: 50%;
-  margin: 0 auto 10px;
-  box-shadow: 0 4px 10px #163f3230;
-}
-
 .login-card form { display: flex; flex-direction: column; gap: 6px; }
 .login-card label { font-weight: 600; }
 .login-card input {
