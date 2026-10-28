@@ -420,6 +420,13 @@ export function App() {
           {/* Actions droite */}
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setCurrentRoute('/admin')}
+              className="hidden md:flex px-3 py-1.5 rounded-lg text-xs font-bold border items-center gap-1.5"
+              style={{ background: c.jauneCl, color: c.brun, borderColor: c.jaune }}
+            >
+              👑 Espace Martine
+            </button>
+            <button
               onClick={() => setCurrentRoute('/benevole')}
               className="px-3 py-1.5 rounded-lg text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5"
               style={{ background: c.vert }}
