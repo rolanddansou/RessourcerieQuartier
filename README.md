@@ -23,7 +23,7 @@ Un seul serveur est nécessaire. Depuis la racine :
 .\.venv\Scripts\python backend/manage.py runserver
 ```
 
-Ouvrir http://127.0.0.1:8000/admin/planning/ (la racine http://127.0.0.1:8000/ y redirige). Le planning React, les API et l'administration Django partagent la même adresse et la même session. Aucun serveur Node/Vite ne doit rester lancé.
+Ouvrir http://127.0.0.1:8000/ pour afficher la connexion. Après identification, l'administrateur arrive dans la gestion des bénévoles et du planning, et le bénévole dans son espace de disponibilités et de planning. Le planning React, les API et l'administration Django partagent la même adresse et la même session. Aucun serveur Node/Vite ne doit rester lancé.
 
 Après une modification du frontend, recompiler puis redémarrer Django :
 
@@ -76,7 +76,7 @@ Après les migrations, créer le groupe et des comptes locaux de démonstration.
 .\.venv\Scripts\python backend/manage.py create_planning_demo --username mon-benevole --role benevole
 ```
 
-L'adaptateur provisoire reconnaît les superutilisateurs comme administrateurs et les membres du groupe `benevole` comme bénévoles. Un compte peut posséder les deux rôles. Le statut `is_staff` seul ne donne pas accès à la gestion du planning.
+L'adaptateur provisoire reconnaît les superutilisateurs ou le rôle `admin` comme administrateurs, et le rôle `benevole` ou l'appartenance au groupe `benevole` comme bénévole. Un compte peut posséder les deux rôles. Le statut `is_staff` seul ne donne pas accès à la gestion du planning.
 
 1. Le bénévole se connecte et ajoute ses dates, plages horaires et détails dans « Mes disponibilités ».
 2. L'administrateur ouvre « Gestion du planning », choisit la semaine et crée son brouillon.
@@ -99,7 +99,7 @@ Le port `UserDirectory` dans `backend/planning/users.py` expose :
 
 Configurer `PLANNING_USER_DIRECTORY` dans les paramètres Django avec le chemin Python de la classe adaptatrice, instanciable sans argument. L'adaptateur Django initial utilise `str(user.pk)` ; préserver ces références ou exécuter une migration explicite des deux champs lors du branchement du module User. Un identifiant ne doit jamais être réattribué à une autre personne. Une identité supprimée de l'annuaire apparaît comme « Bénévole indisponible » dans les anciennes affectations. Les nouvelles affectations nécessitent un bénévole actif.
 
-La connexion commune utilise le formulaire Django sur `/admin/login/`. Le frontend redirige vers ce formulaire sans demander lui-même les mots de passe. `session/` retourne l'identité du port et un jeton CSRF ; `logout/` termine la session partagée. L'ancienne API JSON `login/` reste disponible pour compatibilité, mais n'est plus utilisée par l'interface. Le futur module User pourra remplacer l'adaptateur ; le frontend n'envoie aucun rôle. Le test avec `FakeDirectory` démontre l'usage de références externes sans compte Django.
+La page de connexion React (`/` et `/login/`) utilise l'API JSON avec une session Django et un jeton CSRF. Le formulaire Django reste accessible sur `/admin/login/`. Les deux méthodes partagent la même session. L'administrateur arrive sur `/gestion/`, le bénévole sur `/admin/planning/`. Le frontend ne transmet jamais de rôle : l'identité et les droits sont relus côté serveur à chaque requête. Le test avec `FakeDirectory` démontre l'usage de références externes sans compte Django.
 
 ### API JSON (`/api/planning/`)
 
@@ -127,11 +127,12 @@ Les écritures du planning sont sérialisées par un verrou en base (`PlanningWr
 
 ## Connexion commune et contrôle d'accès
 
-- Connexion de tous les profils : http://127.0.0.1:8000/admin/login/ (formulaire Django).
+- Page de connexion de l'application : http://127.0.0.1:8000/ (également disponible sur `/login/`). Le formulaire Django reste disponible sur `/admin/login/`.
+- Administrateurs : redirection vers `/gestion/` pour gérer les bénévoles ou ouvrir le planning.
 - Bénévoles : redirection vers `/admin/planning/`, sans `is_staff` ni accès aux modèles d'administration.
 - Comptes staff : accès à `/admin/` selon les permissions Django existantes. La gestion du planning reste réservée au rôle `admin` fourni par le port utilisateurs (superutilisateur dans l'adaptateur provisoire).
-- Un compte actif sans rôle planning et sans accès staff est refusé par le formulaire commun. L'accès au planning est revérifié à chaque page et à chaque API.
-- Les visiteurs non connectés sont redirigés vers la connexion. Une session expirée dans React renvoie au même formulaire. La déconnexion termine la session pour le planning et pour l'administration.
+- Un compte actif sans rôle planning est refusé par la connexion de l'application. L'accès au planning et à la gestion est revérifié à chaque page et à chaque API.
+- Les visiteurs non connectés sont redirigés vers la connexion. Une session expirée dans React renvoie vers `/login/`. La déconnexion termine la session pour le planning et pour l'administration.
 - Les paramètres `next` externes sont refusés ; un bénévole ne peut être redirigé que vers le planning. L'ancienne adresse `/planning/` redirige vers `/admin/planning/`.
 
 Un lien « Planning » est disponible dans l'en-tête de l'administration pour les comptes staff. Les données et les rôles existants ne sont pas modifiés.

@@ -79,6 +79,22 @@ body {
   flex: 1;
   min-width: 0;
 }
+.page-heading.with-team-photo > div:first-child {
+  max-width: calc(50% - 120px);
+}
+.page-team-photo {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 50%;
+  width: 190px;
+  height: 126px;
+  object-fit: cover;
+  border: 2px solid #c49b42;
+  border-radius: 5px 12px 5px 9px;
+  box-shadow: 3px 5px 0 #75633b30;
+  transform: translate(-50%, -50%) rotate(-2deg);
+}
 .page-heading .eyebrow {
   color: #8d3b28;
   letter-spacing: 0.18em;
@@ -483,8 +499,24 @@ dialog {
     padding-bottom: 9px;
   }
   .page-heading {
+    display: grid;
+    grid-template-columns: 1fr;
     min-height: auto;
     padding: 23px 20px;
+  }
+  .page-heading > div:first-child {
+    max-width: none;
+  }
+  .page-heading.with-team-photo > div:first-child {
+    max-width: none;
+  }
+  .page-team-photo {
+    position: static;
+    justify-self: center;
+    width: min(100%, 240px);
+    height: auto;
+    aspect-ratio: 3 / 2;
+    transform: rotate(-2deg);
   }
   .page-heading .eyebrow {
     font-size: 0.61rem;
@@ -624,4 +656,21 @@ dialog {
   .field-hint {
     font-size: 0.67rem;
   }
+}
+
+.hero-martine img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+.hero-martine figcaption {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #163f32;
+}
+
+@media (max-width: 600px) {
+  .hero-martine { width: 90px; }
 }

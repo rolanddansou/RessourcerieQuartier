@@ -1,4 +1,5 @@
 import json
+from copy import copy
 from dataclasses import asdict
 from datetime import timedelta
 from functools import wraps
@@ -87,8 +88,13 @@ def sign_in(request):
     user = authenticate(request, username=data['username'], password=data['password'])
     if user is None:
         raise ValidationError({'auth': 'Identifiants invalides.'})
+    probe = copy(request)
+    probe.user = user
+    identity = request.directory.current(probe)
+    if not identity or not identity.active or not set(identity.roles) & {'admin', 'benevole'}:
+        raise ValidationError({'auth': 'Ce compte ne possède pas d’accès à cet espace.'})
     login(request, user)
-    return JsonResponse({'user': asdict(request.directory.current(request)), 'csrf': get_token(request)})
+    return JsonResponse({'user': asdict(identity), 'csrf': get_token(request)})
 
 
 @endpoint(['POST'])

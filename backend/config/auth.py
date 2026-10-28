@@ -33,6 +33,9 @@ class SharedLoginView(LoginView):
     def get_success_url(self):
         target = self.get_redirect_url()  # Django validates the destination host.
         planning_url = reverse('planning-app')
+        identity = planning_identity(self.request)
+        if identity and 'admin' in identity.roles:
+            return reverse('management-app')
         if not self.request.user.is_staff:
             # Volunteers cannot follow a next URL into model administration.
             return target if target and urlsplit(target).path == planning_url else planning_url

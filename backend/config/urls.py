@@ -17,11 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
-from .views import health, planning_app
+from .views import health, login_app, management_app, planning_app
 from .auth import SharedLoginView
 
 urlpatterns = [
-    path('', RedirectView.as_view(pattern_name='planning-app', permanent=False)),
+    path('', RedirectView.as_view(pattern_name='login-app', permanent=False)),
+    path('login/', login_app, name='login-app'),
+    path('gestion/', management_app, name='management-app'),
     path('planning/', RedirectView.as_view(pattern_name='planning-app', permanent=False)),
     path('admin/planning/', planning_app, name='planning-app'),
     path('admin/login/', SharedLoginView.as_view()),

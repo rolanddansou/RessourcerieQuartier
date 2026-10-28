@@ -23,8 +23,20 @@ def save_availability(user_ref, data, pk=None):
     lock_writes()
     item = Availability.objects.select_for_update().get(pk=pk, user_ref=user_ref) if pk else Availability(user_ref=user_ref)
     validate_slot(data)
-    if Availability.objects.filter(user_ref=user_ref, date=data['date'], start__lt=data['end'], end__gt=data['start']).exclude(pk=item.pk).exists():
-        raise ValidationError({'start': 'Cette plage chevauche une autre disponibilité.'})
+    conflict = Availability.objects.filter(
+        user_ref=user_ref,
+        date=data['date'],
+        start__lt=data['end'],
+        end__gt=data['start'],
+    ).exclude(pk=item.pk).order_by('start').first()
+    if conflict:
+        raise ValidationError({
+            'start': (
+                'Cette plage chevauche votre disponibilité existante de '
+                f'{conflict.start:%H:%M} à {conflict.end:%H:%M}. '
+                'Modifiez cette plage ou choisissez des horaires qui ne se chevauchent pas.'
+            )
+        })
     if item.pk:
         for assignment in item.assignments.select_for_update():
             if assignment.date != data['date'] or assignment.start < data['start'] or assignment.end > data['end']:

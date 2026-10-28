@@ -3,6 +3,7 @@ from typing import Protocol
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.utils.module_loading import import_string
 
 
@@ -22,9 +23,10 @@ class UserDirectory(Protocol):
 class DjangoUserDirectory:
     def identity(self, user):
         roles = []
-        if user.is_superuser:
+        account_role = getattr(user, 'role', '')
+        if user.is_superuser or account_role == 'admin':
             roles.append('admin')
-        if user.groups.filter(name='benevole').exists():
+        if account_role == 'benevole' or user.groups.filter(name='benevole').exists():
             roles.append('benevole')
         return Identity(str(user.pk), user.get_full_name() or user.get_username(), tuple(roles), user.is_active)
 
@@ -32,7 +34,10 @@ class DjangoUserDirectory:
         return self.identity(request.user) if request.user.is_authenticated else None
 
     def volunteers(self):
-        return [self.identity(user) for user in get_user_model().objects.filter(groups__name='benevole').distinct()]
+        users = get_user_model().objects.filter(
+            Q(role='benevole') | Q(groups__name='benevole')
+        ).distinct()
+        return [self.identity(user) for user in users]
 
 
 def directory() -> UserDirectory:
