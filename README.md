@@ -9,26 +9,34 @@ python -m venv .venv
 .\.venv\Scripts\python -m pip install -r backend/requirements.txt
 Push-Location frontend
 npm.cmd ci
+npm.cmd run build
 Pop-Location
 .\.venv\Scripts\python backend/manage.py migrate
+.\.venv\Scripts\python backend/manage.py collectstatic --noinput
 ```
 
 ## Démarrer
 
-Dans un premier terminal à la racine :
+Un seul serveur est nécessaire. Depuis la racine :
 
 ```powershell
 .\.venv\Scripts\python backend/manage.py runserver
 ```
 
-Dans un deuxième terminal à la racine :
+Ouvrir http://127.0.0.1:8000/admin/planning/ (la racine http://127.0.0.1:8000/ y redirige). Le planning React, les API et l'administration Django partagent la même adresse et la même session. Aucun serveur Node/Vite ne doit rester lancé.
+
+Après une modification du frontend, recompiler puis redémarrer Django :
 
 ```powershell
-Set-Location frontend
-npm.cmd run dev
+Push-Location frontend
+npm.cmd run build
+Pop-Location
+.\.venv\Scripts\python backend/manage.py collectstatic --noinput
 ```
 
-Ouvrir http://127.0.0.1:5173. Vite transmet les requêtes `/api`, y compris la connexion et la déconnexion du planning, au backend sur le port 8000. Le point de contrôle `/api/health/` reste disponible.
+Les fichiers compilés se trouvent dans `frontend/dist/` et sont servis sous `/static/planning/`. WhiteNoise assure la distribution des fichiers statiques, y compris lorsque `DJANGO_DEBUG=false` après `collectstatic`. Si le frontend n'a pas été compilé, `/admin/planning/` indique la commande à exécuter avec une réponse HTTP 503. Ne pas mettre en cache la page HTML d'entrée, afin de charger les nouveaux fichiers après une compilation.
+
+Pour travailler sur React avec actualisation à chaud, le mode Vite reste disponible en option : lancer Django puis `npm.cmd run dev` depuis `frontend/` et ouvrir http://127.0.0.1:5173. Ce mode utilise deux serveurs uniquement pendant le développement frontend ; les API sont transmises à Django sur le port 8000. Le point de contrôle `/api/health/` reste disponible.
 
 Administration : http://127.0.0.1:8000/admin/ ; créer un compte avec `.\.venv\Scripts\python backend/manage.py createsuperuser`.
 
@@ -56,7 +64,7 @@ Sur Windows, les tests utilisent Microsoft Edge installé. Sur les autres systè
 
 Les paramètres Django lisent les variables d'environnement `DJANGO_SECRET_KEY`, `DJANGO_DEBUG` et `DJANGO_ALLOWED_HOSTS` (hôtes séparés par des virgules). En local, les valeurs par défaut suffisent. Les fichiers `.env` ne sont pas chargés automatiquement.
 
-Cette base est configurée pour le développement. Avant un déploiement, définir une clé secrète privée, désactiver DEBUG, renseigner les hôtes et configurer le serveur, HTTPS et la distribution du frontend compilé.
+Cette base est configurée pour le développement. Avant un déploiement, définir une clé secrète privée, désactiver DEBUG, renseigner les hôtes, compiler le frontend puis exécuter `collectstatic`. Utiliser un serveur WSGI/ASGI adapté et configurer HTTPS ; `runserver` reste réservé au développement. WhiteNoise est configuré suivant sa [documentation Django](https://whitenoise.readthedocs.io/en/stable/django.html).
 
 ## Planning : comptes et utilisation
 
@@ -91,7 +99,7 @@ Le port `UserDirectory` dans `backend/planning/users.py` expose :
 
 Configurer `PLANNING_USER_DIRECTORY` dans les paramètres Django avec le chemin Python de la classe adaptatrice, instanciable sans argument. L'adaptateur Django initial utilise `str(user.pk)` ; préserver ces références ou exécuter une migration explicite des deux champs lors du branchement du module User. Un identifiant ne doit jamais être réattribué à une autre personne. Une identité supprimée de l'annuaire apparaît comme « Bénévole indisponible » dans les anciennes affectations. Les nouvelles affectations nécessitent un bénévole actif.
 
-Les routes `session/`, `login/` et `logout/` sont provisoires : session retourne l'identité du port et un jeton CSRF, tandis que connexion/déconnexion utilisent Django. Le futur module User pourra les remplacer ; le frontend n'envoie aucun rôle. Le test avec `FakeDirectory` démontre l'usage de références externes sans compte Django.
+La connexion commune utilise le formulaire Django sur `/admin/login/`. Le frontend redirige vers ce formulaire sans demander lui-même les mots de passe. `session/` retourne l'identité du port et un jeton CSRF ; `logout/` termine la session partagée. L'ancienne API JSON `login/` reste disponible pour compatibilité, mais n'est plus utilisée par l'interface. Le futur module User pourra remplacer l'adaptateur ; le frontend n'envoie aucun rôle. Le test avec `FakeDirectory` démontre l'usage de références externes sans compte Django.
 
 ### API JSON (`/api/planning/`)
 
@@ -116,3 +124,14 @@ Dates ISO `YYYY-MM-DD`, heures `HH:MM`. Un planning contient `{id, week, publish
 Les erreurs métier retournent `{errors: {champ: [messages]}}` avec HTTP 400 ; authentification 401, permission 403, ressource absente 404, conflit d'intégrité 409. Une erreur CSRF est un HTTP 403 standard Django. Toutes les mutations exigent le jeton CSRF obtenu via `session/` et transmis dans `X-CSRFToken`. L'adaptateur et la session sont vérifiés à chaque requête.
 
 Les écritures du planning sont sérialisées par un verrou en base (`PlanningWriteLock`) à l'intérieur des transactions : les contrôles de chevauchement et de couverture restent cohérents lors de modifications concurrentes. En cas de contention SQLite, l'API renvoie 409 et demande de réessayer. Cette sérialisation globale privilégie la simplicité pour cette première version ; elle peut être affinée si le volume augmente.
+
+## Connexion commune et contrôle d'accès
+
+- Connexion de tous les profils : http://127.0.0.1:8000/admin/login/ (formulaire Django).
+- Bénévoles : redirection vers `/admin/planning/`, sans `is_staff` ni accès aux modèles d'administration.
+- Comptes staff : accès à `/admin/` selon les permissions Django existantes. La gestion du planning reste réservée au rôle `admin` fourni par le port utilisateurs (superutilisateur dans l'adaptateur provisoire).
+- Un compte actif sans rôle planning et sans accès staff est refusé par le formulaire commun. L'accès au planning est revérifié à chaque page et à chaque API.
+- Les visiteurs non connectés sont redirigés vers la connexion. Une session expirée dans React renvoie au même formulaire. La déconnexion termine la session pour le planning et pour l'administration.
+- Les paramètres `next` externes sont refusés ; un bénévole ne peut être redirigé que vers le planning. L'ancienne adresse `/planning/` redirige vers `/admin/planning/`.
+
+Un lien « Planning » est disponible dans l'en-tête de l'administration pour les comptes staff. Les données et les rôles existants ne sont pas modifiés.

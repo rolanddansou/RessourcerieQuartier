@@ -16,9 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from .views import health
+from django.views.generic import RedirectView
+from .views import health, planning_app
+from .auth import SharedLoginView
 
 urlpatterns = [
+    path('', RedirectView.as_view(pattern_name='planning-app', permanent=False)),
+    path('planning/', RedirectView.as_view(pattern_name='planning-app', permanent=False)),
+    path('admin/planning/', planning_app, name='planning-app'),
+    path('admin/login/', SharedLoginView.as_view()),
     path('api/planning/', include('planning.urls')),
     path('api/health/', health, name='health'),
     path('admin/', admin.site.urls),

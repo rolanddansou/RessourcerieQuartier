@@ -39,6 +39,16 @@ async function setup(
   let loadFailure = options.loadFailure ?? false
   const mutations: string[] = []
   await page.clock.install({ time: new Date('2026-10-27T10:00:00+01:00') })
+  await page.route('**/admin/login/**', (route) =>
+    route.fulfill({
+      contentType: 'text/html; charset=utf-8',
+      body:
+        '<h1>Connexion Django</h1>' +
+        (route.request().url().includes('expired=1')
+          ? '<p role="status">Votre session a expiré</p>'
+          : ''),
+    }),
+  )
   await page.route('**/api/planning/**', async (route) => {
     const request = route.request()
     const url = new URL(request.url())
@@ -129,17 +139,10 @@ async function setup(
   }
 }
 
-test('connexion, validation des horaires et conservation de la saisie après conflit', async ({
+test('validation des horaires et conservation de la saisie après conflit', async ({
   page,
 }, testInfo) => {
-  const mock = await setup(page, { guest: true, saveConflict: true })
-  await page.screenshot({
-    path: testInfo.outputPath('login.png'),
-    fullPage: true,
-  })
-  await page.getByLabel('Identifiant', { exact: true }).fill('alice')
-  await page.getByLabel('Mot de passe', { exact: true }).fill('password')
-  await page.getByRole('button', { name: 'Se connecter', exact: true }).click()
+  const mock = await setup(page, { saveConflict: true })
   await page
     .getByRole('button', { name: 'Mes disponibilités', exact: true })
     .click()
@@ -189,16 +192,23 @@ test('un échec de chargement ne permet pas de créer un planning vide', async (
   ).toBeVisible()
 })
 
-test('corriger un champ ne déplace pas le focus vers une autre erreur', async ({ page }) => {
+test('corriger un champ ne déplace pas le focus vers une autre erreur', async ({
+  page,
+}) => {
   await setup(page)
-  await page.getByRole('button', { name: 'Mes disponibilités', exact: true }).click()
+  await page
+    .getByRole('button', { name: 'Mes disponibilités', exact: true })
+    .click()
   await page.getByLabel('Date', { exact: true }).fill('')
   await page.getByLabel('Fin', { exact: true }).fill('08:00')
   await page.getByRole('button', { name: 'Enregistrer', exact: true }).click()
   await expect(page.getByLabel('Date', { exact: true })).toBeFocused()
   await page.getByLabel('Date', { exact: true }).fill('2026-10-27')
   await expect(page.getByLabel('Date', { exact: true })).toBeFocused()
-  await expect(page.getByLabel('Fin', { exact: true })).toHaveAttribute('aria-invalid', 'true')
+  await expect(page.getByLabel('Fin', { exact: true })).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  )
 })
 
 test('la navigation protège une saisie non enregistrée', async ({ page }) => {
@@ -255,7 +265,7 @@ test('une session expirée revient à la connexion', async ({ page }) => {
     .getByRole('button', { name: 'Mes disponibilités', exact: true })
     .click()
   await expect(
-    page.getByRole('heading', { name: 'Connectez-vous' }),
+    page.getByRole('heading', { name: 'Connexion Django' }),
   ).toBeVisible()
   await expect(page.getByRole('status')).toContainText('Votre session a expiré')
 })
@@ -277,12 +287,18 @@ test('création, affectation et publication avec retours de succès', async ({
   await expect(page.getByLabel('Bénévole', { exact: true })).toHaveValue('v1')
   await expect(page.getByLabel('Date', { exact: true })).toBeFocused()
   await page.getByRole('button', { name: 'Enregistrer', exact: true }).click()
-  await expect(page.getByRole('status').filter({ hasText: 'Affectation enregistrée.' })).toBeVisible()
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Affectation enregistrée.' }),
+  ).toBeVisible()
   await page
     .getByRole('button', { name: 'Publier le planning', exact: true })
     .click()
-  await expect(page.getByRole('status').filter({ hasText: 'Planning publié.' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Dépublier', exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Planning publié.' }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'Dépublier', exact: true }),
+  ).toBeVisible()
   await page.screenshot({
     path: testInfo.outputPath('admin.png'),
     fullPage: true,
@@ -319,7 +335,9 @@ test('la suppression demande confirmation puis actualise la liste', async ({
   await expect(
     page.getByText('Disponible pour le tri', { exact: true }),
   ).toHaveCount(0)
-  await expect(page.getByRole('status').filter({ hasText: 'Disponibilité supprimée.' })).toBeVisible()
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Disponibilité supprimée.' }),
+  ).toBeVisible()
 })
 
 test('édition accessible sur mobile et absence de débordement à 320 px', async ({
@@ -393,4 +411,16 @@ test('une semaine ancienne ne réapparaît pas après navigation rapide', async 
   await expect(
     page.getByText('Disponible pour le tri', { exact: true }),
   ).toHaveCount(0)
+})
+
+test('sans session, le frontend redirige vers le formulaire Django commun', async ({
+  page,
+}) => {
+  await setup(page, { guest: true })
+  await expect(
+    page.getByRole('heading', { name: 'Connexion Django' }),
+  ).toBeVisible()
+  const destination = new URL(page.url())
+  expect(destination.pathname).toBe('/admin/login/')
+  expect(destination.searchParams.get('next')).toBe('/admin/planning/')
 })
