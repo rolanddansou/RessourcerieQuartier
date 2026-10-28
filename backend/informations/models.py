@@ -37,3 +37,26 @@ class Fermeture(models.Model):
 
     def __str__(self):
         return f"{self.date:%d/%m/%Y} {self.motif}".strip()
+
+
+class CritereDon(models.Model):
+    KIND_CHOICES = [
+        ('accepte', 'Objet accepté'),
+        ('refuse', 'Objet refusé'),
+        ('depot', 'Condition de dépôt'),
+    ]
+
+    kind = models.CharField(max_length=10, choices=KIND_CHOICES, verbose_name="Type")
+    icon = models.CharField(max_length=10, blank=True, verbose_name="Icône (emoji)")
+    label = models.CharField(max_length=150, blank=True, verbose_name="Titre")
+    detail = models.TextField(blank=True, verbose_name="Exemples / raison / texte")
+    condition = models.CharField(max_length=200, blank=True, verbose_name="Condition (objets acceptés)")
+    ordre = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
+
+    class Meta:
+        verbose_name = "Critère de don"
+        verbose_name_plural = "Critères de don"
+        ordering = ['kind', 'ordre', 'id']
+
+    def __str__(self):
+        return f"[{self.get_kind_display()}] {self.label or self.detail[:40]}"
