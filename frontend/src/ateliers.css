@@ -1,0 +1,432 @@
+.atelier-page {
+  --atelier-ink: #1d382d;
+  --atelier-green: #285b43;
+  --atelier-green-dark: #1d4934;
+  --atelier-muted: #68766d;
+  --atelier-line: #e5e0d3;
+  --atelier-paper: #fffdf8;
+  min-height: 100vh;
+  color: var(--atelier-ink);
+  background: #faf8f1;
+}
+
+.atelier-header {
+  width: min(1180px, calc(100% - 48px));
+  min-height: 88px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.atelier-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--atelier-ink);
+  text-decoration: none;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.atelier-brand img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+
+.atelier-brand small {
+  display: block;
+  margin-top: 4px;
+  color: var(--atelier-green);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.atelier-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.atelier-nav a {
+  padding: 10px 13px;
+  border-radius: 999px;
+  color: #44584d;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.atelier-nav a:hover {
+  color: var(--atelier-green-dark);
+  background: #eef2e9;
+}
+
+.atelier-nav .atelier-nav-admin {
+  padding: 11px 17px;
+  color: #fff;
+  background: var(--atelier-green);
+}
+
+.atelier-nav .atelier-nav-admin:hover {
+  color: #fff;
+  background: var(--atelier-green-dark);
+  transform: translateY(-1px);
+}
+
+.atelier-main {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 16px 0 52px;
+}
+
+.atelier-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, .95fr);
+  align-items: center;
+  min-height: 390px;
+  padding: 48px 58px;
+  overflow: hidden;
+  border: 1px solid #e9e2cf;
+  border-radius: 28px;
+  background: linear-gradient(118deg, #fffdf8 0%, #f8f0d8 52%, #e6f0e4 100%);
+  box-shadow: 0 18px 50px rgba(44, 62, 48, .07);
+}
+
+.atelier-hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 610px;
+}
+
+.atelier-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 16px;
+  color: #aa5239;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.atelier-eyebrow > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dfa91d;
+  box-shadow: 0 0 0 4px rgba(223, 169, 29, .15);
+}
+
+.atelier-hero h1 {
+  margin: 0;
+  color: var(--atelier-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(42px, 5vw, 66px);
+  font-weight: 700;
+  letter-spacing: -.055em;
+  line-height: .98;
+}
+
+.atelier-hero h1 em {
+  color: var(--atelier-green);
+  font-weight: 500;
+}
+
+.atelier-hero-description {
+  max-width: 470px;
+  margin: 20px 0 24px;
+  color: #56685d;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.atelier-hero-link,
+.atelier-empty-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--atelier-green-dark);
+  font-size: 14px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.atelier-hero-link span,
+.atelier-empty-link span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--atelier-green);
+  transition: transform .18s ease;
+}
+
+.atelier-hero-link:hover span,
+.atelier-empty-link:hover span {
+  transform: translateY(3px);
+}
+
+.atelier-hero-art {
+  position: relative;
+  min-height: 290px;
+}
+
+.atelier-art-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 265px;
+  height: 265px;
+  border: 1px dashed rgba(40, 91, 67, .3);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .88) 0 35%, rgba(234, 239, 222, .62) 36% 68%, transparent 69%);
+  transform: translate(-50%, -50%);
+}
+
+.atelier-art-card {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 16px;
+  border: 1px solid rgba(226, 222, 207, .92);
+  border-radius: 16px;
+  color: var(--atelier-ink);
+  background: rgba(255, 253, 248, .94);
+  box-shadow: 0 12px 26px rgba(46, 67, 52, .11);
+}
+
+.atelier-art-card > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 12px;
+  background: #f5edcf;
+  font-size: 22px;
+}
+
+.atelier-art-card strong,
+.atelier-art-card small {
+  display: block;
+  white-space: nowrap;
+}
+
+.atelier-art-card strong { font-size: 13px; }
+.atelier-art-card small { margin-top: 2px; color: var(--atelier-muted); font-size: 11px; }
+.atelier-art-card-main { top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-3deg); }
+.atelier-art-card-top { top: 18px; right: 6px; transform: rotate(5deg); }
+.atelier-art-card-bottom { bottom: 19px; left: 2px; transform: rotate(-5deg); }
+
+.atelier-list-section {
+  padding: 62px 0 0;
+  scroll-margin-top: 28px;
+}
+
+.atelier-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.atelier-section-heading .atelier-eyebrow { margin-bottom: 9px; }
+.atelier-section-heading h2 {
+  margin: 0 0 7px;
+  color: var(--atelier-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(27px, 3vw, 36px);
+  letter-spacing: -.035em;
+}
+.atelier-section-heading > div > p:last-child { margin: 0; color: var(--atelier-muted); font-size: 14px; }
+
+.atelier-count {
+  flex: 0 0 auto;
+  padding: 8px 13px;
+  border: 1px solid #d9e4d7;
+  border-radius: 999px;
+  color: var(--atelier-green);
+  background: #f0f5ec;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.atelier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 19px;
+}
+
+.atelier-card {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--atelier-line);
+  border-radius: 21px;
+  background: var(--atelier-paper);
+  box-shadow: 0 10px 30px rgba(45, 58, 46, .055);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.atelier-card:hover {
+  transform: translateY(-3px);
+  border-color: #cddbc9;
+  box-shadow: 0 17px 36px rgba(45, 58, 46, .095);
+}
+
+.atelier-card-heading { display: flex; align-items: center; gap: 14px; }
+.atelier-date-badge {
+  display: flex;
+  flex: 0 0 58px;
+  height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  color: var(--atelier-green-dark);
+  background: #f4edcf;
+}
+.atelier-date-day { font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; line-height: 1; }
+.atelier-date-month { margin-top: 4px; font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.atelier-card-title { min-width: 0; }
+.atelier-card-label { color: #a84e36; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.atelier-card h3 { margin: 5px 0 0; color: var(--atelier-ink); font-family: Georgia, 'Times New Roman', serif; font-size: 19px; line-height: 1.2; }
+.atelier-card-description { min-height: 48px; margin: 17px 0 14px; color: #637167; font-size: 13px; line-height: 1.55; }
+.atelier-card-details { display: grid; gap: 9px; padding: 13px 0; border-top: 1px solid #efede5; border-bottom: 1px solid #efede5; }
+.atelier-card-details p { display: flex; align-items: flex-start; gap: 9px; margin: 0; color: #47594e; font-size: 12px; line-height: 1.45; }
+.atelier-card-details p > span:first-child { width: 15px; flex: 0 0 15px; color: var(--atelier-green); font-size: 15px; font-weight: 800; text-align: center; }
+.atelier-capacity { display: flex; align-items: center; gap: 8px; margin: 13px 0 17px; color: var(--atelier-green); font-size: 12px; font-weight: 750; }
+.atelier-capacity.is-full { color: #a44735; }
+.atelier-capacity-dot { width: 8px; height: 8px; border-radius: 50%; background: #65a36d; box-shadow: 0 0 0 4px #eaf3e8; }
+.atelier-capacity.is-full .atelier-capacity-dot { background: #bd5947; box-shadow: 0 0 0 4px #faece8; }
+
+.atelier-form { display: grid; gap: 11px; padding-top: 14px; border-top: 1px dashed #e6e1d5; }
+.atelier-form h4 { margin: 0 0 1px; color: var(--atelier-ink); font-size: 13px; }
+.atelier-form label { display: grid; gap: 6px; color: #44574c; font-size: 11px; font-weight: 700; }
+.atelier-form input {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid #d9dfd4;
+  border-radius: 10px;
+  outline: 0;
+  color: var(--atelier-ink);
+  background: #fff;
+  font-size: 13px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.atelier-form input::placeholder { color: #9aa49c; }
+.atelier-form input:focus { border-color: #668b6b; box-shadow: 0 0 0 3px rgba(83, 131, 91, .13); }
+.atelier-submit {
+  width: 100%;
+  min-height: 45px;
+  justify-content: space-between;
+  margin-top: 3px;
+  padding: 11px 15px;
+  border: 0;
+  border-radius: 11px;
+  color: #fff;
+  background: var(--atelier-green);
+  font-size: 13px;
+  font-weight: 750;
+}
+.atelier-submit:hover:not(:disabled) { background: var(--atelier-green-dark); }
+.atelier-submit span { font-size: 18px; }
+.atelier-full-note { margin: 0; padding: 12px; border-radius: 10px; color: #944536; background: #fbefea; font-size: 12px; }
+.atelier-feedback { margin: 12px 0 0; padding: 11px 12px; border-radius: 10px; font-size: 12px; line-height: 1.5; }
+.atelier-feedback.is-success { color: #22553b; background: #eaf4e9; }
+.atelier-feedback.is-error { color: #943c2b; background: #fff0eb; }
+
+.atelier-empty {
+  display: flex;
+  min-height: 260px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  border: 1px dashed #d7d8c9;
+  border-radius: 22px;
+  text-align: center;
+  background: rgba(255, 253, 248, .8);
+}
+.atelier-empty-icon { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 17px; color: var(--atelier-green); background: #edf3e8; font-family: Georgia, 'Times New Roman', serif; font-size: 27px; font-weight: 700; }
+.atelier-empty h3 { margin: 16px 0 7px; color: var(--atelier-ink); font-family: Georgia, 'Times New Roman', serif; font-size: 21px; }
+.atelier-empty p { max-width: 440px; margin: 0; color: var(--atelier-muted); font-size: 13px; line-height: 1.6; }
+.atelier-empty-link { margin-top: 18px; font-size: 13px; }
+.atelier-empty-error .atelier-empty-icon { color: #a44735; background: #faece8; }
+.atelier-empty-button { margin-top: 18px; padding: 10px 16px; border-radius: 10px; color: #fff; background: var(--atelier-green); font-size: 12px; }
+
+.atelier-skeleton { min-height: 410px; border: 1px solid var(--atelier-line); border-radius: 21px; background: linear-gradient(100deg, #f0ede5 20%, #faf8f1 38%, #f0ede5 58%); background-size: 200% 100%; animation: atelier-shimmer 1.3s ease-in-out infinite; }
+@keyframes atelier-shimmer { to { background-position-x: -200%; } }
+
+.atelier-contact { display: flex; align-items: center; gap: 16px; margin-top: 31px; padding: 20px 23px; border: 1px solid #e2e8da; border-radius: 17px; background: #eef3e8; }
+.atelier-contact-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 13px; color: #8b6810; background: #f7e9b8; font-size: 20px; }
+.atelier-contact > div { flex: 1; }
+.atelier-contact strong { color: var(--atelier-ink); font-size: 13px; }
+.atelier-contact p { margin: 3px 0 0; color: #627165; font-size: 12px; }
+.atelier-contact > a { color: var(--atelier-green-dark); font-size: 12px; font-weight: 750; text-decoration: none; white-space: nowrap; }
+.atelier-contact > a:hover { text-decoration: underline; }
+
+.atelier-footer { display: flex; justify-content: space-between; gap: 18px; width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 22px 0 28px; border-top: 1px solid #e8e4d8; color: #78847a; font-size: 11px; }
+
+@media (max-width: 980px) {
+  .atelier-hero { grid-template-columns: minmax(0, 1.1fr) minmax(230px, .9fr); padding: 42px; }
+  .atelier-art-orbit { width: 230px; height: 230px; }
+  .atelier-art-card { padding: 10px 12px; }
+  .atelier-art-card > span { width: 36px; height: 36px; }
+  .atelier-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 680px) {
+  .atelier-header,
+  .atelier-main,
+  .atelier-footer { width: min(100% - 32px, 520px); }
+  .atelier-header { min-height: 76px; flex-wrap: wrap; gap: 8px; padding: 12px 0; }
+  .atelier-brand img { width: 45px; height: 45px; }
+  .atelier-brand { font-size: 15px; }
+  .atelier-nav { width: 100%; justify-content: flex-start; gap: 3px; }
+  .atelier-nav a { padding: 8px 9px; font-size: 11px; }
+  .atelier-nav .atelier-nav-admin { padding: 9px 11px; }
+  .atelier-main { padding-top: 8px; }
+  .atelier-hero { min-height: 0; grid-template-columns: 1fr; gap: 15px; padding: 30px 24px 18px; border-radius: 22px; }
+  .atelier-hero h1 { font-size: clamp(42px, 12vw, 57px); }
+  .atelier-hero-description { max-width: 450px; margin: 15px 0 18px; font-size: 14px; }
+  .atelier-hero-art { min-height: 205px; }
+  .atelier-art-orbit { width: 190px; height: 190px; }
+  .atelier-art-card-top { top: 8px; right: 0; }
+  .atelier-art-card-bottom { bottom: 6px; left: 0; }
+  .atelier-list-section { padding-top: 43px; }
+  .atelier-section-heading { align-items: flex-start; flex-direction: column; gap: 13px; margin-bottom: 19px; }
+  .atelier-section-heading > div > p:last-child { font-size: 13px; }
+  .atelier-grid { grid-template-columns: 1fr; gap: 13px; }
+  .atelier-card { padding: 19px; }
+  .atelier-card-description { min-height: 0; }
+  .atelier-skeleton { min-height: 380px; }
+  .atelier-contact { align-items: flex-start; flex-wrap: wrap; gap: 12px; padding: 17px; }
+  .atelier-contact > div { min-width: calc(100% - 56px); }
+  .atelier-contact > a { margin-left: 52px; white-space: normal; }
+  .atelier-footer { flex-direction: column; gap: 4px; padding-top: 17px; font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atelier-card,
+  .atelier-nav a,
+  .atelier-hero-link span,
+  .atelier-empty-link span { transition: none; }
+  .atelier-skeleton { animation: none; }
+}

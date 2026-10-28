@@ -1,0 +1,5 @@
+{% extends "admin/login.html" %}
+{% block content %}
+  {% if session_expired %}<p role="status">Votre session a expiré. Reconnectez-vous pour continuer.</p>{% endif %}
+  {{ block.super }}
+{% endblock %}
