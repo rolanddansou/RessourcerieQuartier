@@ -40,6 +40,129 @@ const c = {
   brunCl:   '#f2ebe3',
 }
 
+interface Critere {
+  id: number
+  kind: 'accepte' | 'refuse' | 'depot'
+  icon: string
+  label: string
+  detail: string
+  condition: string
+}
+
+/* ── Ligne éditable d'un critère de don (espace admin) ── */
+function CritereRow({ critere, onSave, onDelete, inputCls }: {
+  critere: Critere
+  onSave: (id: number, data: Partial<Critere>) => void
+  onDelete: (id: number) => void
+  inputCls: string
+}) {
+  const [draft, setDraft] = useState(critere)
+  const changed = JSON.stringify(draft) !== JSON.stringify(critere)
+  const set = (k: keyof Critere, v: string) => setDraft({ ...draft, [k]: v })
+  const k = critere.kind
+  return (
+    <div className="rounded-lg border border-stone-200 p-2 space-y-1.5 bg-stone-50">
+      {k !== 'depot' && (
+        <div className="flex gap-2">
+          {k === 'accepte' && <input value={draft.icon} onChange={e => set('icon', e.target.value)} className={`${inputCls} !w-14 text-center`} placeholder="🔌" />}
+          <input value={draft.label} onChange={e => set('label', e.target.value)} className={inputCls}
+                 placeholder={k === 'accepte' ? 'Catégorie' : 'Objet refusé'} />
+        </div>
+      )}
+      <input value={draft.detail} onChange={e => set('detail', e.target.value)} className={inputCls}
+             placeholder={k === 'accepte' ? "Exemples d'objets" : k === 'refuse' ? 'Raison du refus' : 'Condition de dépôt'} />
+      {k === 'accepte' && (
+        <input value={draft.condition} onChange={e => set('condition', e.target.value)} className={inputCls} placeholder="Condition (ex : propre, en bon état)" />
+      )}
+      <div className="flex justify-end gap-3 text-xs font-bold">
+        <button type="button" onClick={() => onDelete(critere.id)}
+                className="px-2.5 py-1 rounded-lg border" style={{ color: c.orange, borderColor: c.orange }}>🗑 Retirer</button>
+        <button type="button" disabled={!changed} onClick={() => onSave(critere.id, draft)}
+                className="px-2.5 py-1 rounded-lg text-white"
+                style={{ background: changed ? c.vert : '#cfcfcf' }}>{changed ? '💾 Enregistrer' : '✓ À jour'}</button>
+      </div>
+    </div>
+  )
+}
+
+/* ── Groupe de critères : lecture + mode « éditer la liste » ── */
+function CritereGroup({ kind, titre, color, items, itemLabel, onSave, onDelete, onAdd, inputCls }: {
+  kind: Critere['kind']
+  titre: string
+  color: string
+  items: Critere[]
+  itemLabel: string
+  onSave: (id: number, data: Partial<Critere>) => void
+  onDelete: (id: number) => void
+  onAdd: (data: Partial<Critere> & { kind: Critere['kind'] }) => Promise<boolean>
+  inputCls: string
+}) {
+  const [editing, setEditing] = useState(false)
+  const [nouveau, setNouveau] = useState({ icon: '', label: '', detail: '', condition: '' })
+  const vide = kind === 'depot' ? !nouveau.detail.trim() : !nouveau.label.trim()
+
+  const ajouter = async () => {
+    if (vide) return
+    if (await onAdd({ kind, ...nouveau })) setNouveau({ icon: '', label: '', detail: '', condition: '' })
+  }
+
+  return (
+    <div className="rounded-xl border-2 p-3 space-y-3" style={{ borderColor: `${color}55` }}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-bold text-sm" style={{ color }}>{titre} <span className="text-stone-400 font-normal">({items.length})</span></p>
+        <button type="button" onClick={() => setEditing(!editing)}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold text-white"
+                style={{ background: editing ? '#6b7280' : color }}>
+          {editing ? '✓ Terminer' : '✏️ Éditer la liste'}
+        </button>
+      </div>
+
+      {!editing && (
+        items.length === 0
+          ? <p className="text-xs text-stone-400">Liste vide. Cliquez sur « Éditer la liste » pour ajouter.</p>
+          : <ul className="text-xs text-stone-700 space-y-1">
+              {items.map(it => (
+                <li key={it.id}>
+                  {kind === 'accepte' && `${it.icon} `}<strong>{it.label}</strong>
+                  {it.label && it.detail && ' — '}{it.detail}
+                  {it.condition && <span className="text-stone-400"> (condition : {it.condition})</span>}
+                </li>
+              ))}
+            </ul>
+      )}
+
+      {editing && (
+        <div className="space-y-3">
+          <div className="rounded-lg p-2.5 space-y-1.5" style={{ background: `${color}12` }}>
+            <p className="text-xs font-bold" style={{ color }}>➕ {itemLabel}</p>
+            {kind !== 'depot' && (
+              <div className="flex gap-2">
+                {kind === 'accepte' && <input value={nouveau.icon} onChange={e => setNouveau({ ...nouveau, icon: e.target.value })} className={`${inputCls} !w-14 text-center`} placeholder="📦" />}
+                <input value={nouveau.label} onChange={e => setNouveau({ ...nouveau, label: e.target.value })} className={inputCls}
+                       placeholder={kind === 'accepte' ? 'Nom de la catégorie *' : "Nom de l'objet refusé *"} />
+              </div>
+            )}
+            <input value={nouveau.detail} onChange={e => setNouveau({ ...nouveau, detail: e.target.value })} className={inputCls}
+                   placeholder={kind === 'accepte' ? "Exemples d'objets" : kind === 'refuse' ? 'Raison du refus' : 'Texte de la condition *'} />
+            {kind === 'accepte' && (
+              <input value={nouveau.condition} onChange={e => setNouveau({ ...nouveau, condition: e.target.value })} className={inputCls} placeholder="Condition (ex : propre, en bon état)" />
+            )}
+            <button type="button" onClick={ajouter} disabled={vide}
+                    className="w-full py-2 rounded-lg text-white text-xs font-bold"
+                    style={{ background: vide ? '#cfcfcf' : color }}>➕ Ajouter à la liste</button>
+          </div>
+
+          {items.length > 0 && <p className="text-[11px] text-stone-400">Modifiez un texte puis cliquez sur « Enregistrer », ou retirez la ligne :</p>}
+          {items.map(cr => (
+            <CritereRow key={`${cr.id}-${cr.label}-${cr.detail}-${cr.condition}-${cr.icon}`} critere={cr}
+                        onSave={onSave} onDelete={onDelete} inputCls={inputCls} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── États d'un objet ── */
 const DON_STATUTS = [
   { key: 'recu',      label: '📥 Reçu' },
@@ -76,6 +199,7 @@ export function App() {
   const [benevoleView, setBenevoleView] = useState<'dons'>('dons')
   const [adminView, setAdminView] = useState<'dons' | 'supervision' | 'infos'>('dons')
   const [infos, setInfos] = useState<Infos | null>(null)
+  const [criteres, setCriteres] = useState<Critere[]>([])
   const [horairesEdit, setHorairesEdit] = useState<{ jour: string; plage: string }[]>([])
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -99,14 +223,16 @@ export function App() {
 
   const fetchAllData = async () => {
     try {
-      const [resDons, resStats, resInfos] = await Promise.all([
+      const [resDons, resStats, resInfos, resCriteres] = await Promise.all([
         fetch('/api/dons/').then(r => r.json()),
         fetch('/api/stats/').then(r => r.json()),
         fetch('/api/infos/').then(r => r.json()),
+        fetch('/api/criteres/').then(r => r.json()),
       ])
       setDons(resDons)
       setStats(resStats)
       setInfos(resInfos)
+      setCriteres(resCriteres)
       setHorairesEdit(resInfos.horaires)
     } catch {
       console.warn('Backend Django en cours de synchronisation...')
@@ -172,6 +298,34 @@ export function App() {
 
   const fmtJour = (iso: string) =>
     new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  const handleSaveCritere = async (id: number, data: Partial<Critere>) => {
+    try {
+      const res = await fetch(`/api/criteres/${id}/`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+      })
+      if (res.ok) { showToast('Critère enregistré'); fetchAllData() } else showToast('Enregistrement impossible')
+    } catch { showToast('Erreur réseau') }
+  }
+
+  const handleAddCritere = async (data: Partial<Critere> & { kind: Critere['kind'] }) => {
+    try {
+      const res = await fetch('/api/criteres/', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+      })
+      if (res.ok) { showToast('Ajouté à la liste'); fetchAllData(); return true }
+      showToast("Ajout impossible")
+    } catch { showToast('Erreur réseau') }
+    return false
+  }
+
+  const handleDeleteCritere = async (id: number) => {
+    if (!confirm('Supprimer ce critère ?')) return
+    try {
+      const res = await fetch(`/api/criteres/${id}/`, { method: 'DELETE' })
+      if (res.ok) { showToast('Critère supprimé'); fetchAllData() }
+    } catch { showToast('Erreur réseau') }
+  }
 
   const handleDeleteDon = async (dbId: number) => {
     if (!confirm("Supprimer cet objet de l'inventaire ?")) return
@@ -409,26 +563,56 @@ export function App() {
           </section>
 
           {/* Guide des dons */}
-          <section id="dons" className="space-y-3">
-            <h3 className="text-lg font-bold" style={{ color: c.brun }}>📦 Que peut-on donner ?</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { icon: '🔌', label: 'Petit électroménager', detail: 'Aspirateurs, grille-pain…', ok: true },
-                { icon: '🪑', label: 'Mobilier & Déco', detail: 'En bon état, démontable', ok: true },
-                { icon: '👕', label: 'Vêtements propres', detail: 'Toutes tailles acceptées', ok: true },
-                { icon: '🖨️', label: 'Gros électroménager', detail: 'Hors liste, désolé', ok: false },
-              ].map(item => (
-                <div key={item.label} className={`${card} p-3 text-center`}
-                     style={{ borderLeft: `3px solid ${item.ok ? c.vert : c.orange}` }}>
-                  <div className="text-2xl mb-1">{item.icon}</div>
-                  <p className="text-xs font-bold text-stone-800">{item.label}</p>
-                  <p className="text-[10px] text-stone-400 mt-0.5">{item.detail}</p>
-                  <span className="text-[9px] font-bold mt-1 inline-block"
-                        style={{ color: item.ok ? c.vert : c.orange }}>
-                    {item.ok ? '✔ Accepté' : '✕ Refusé'}
-                  </span>
+          <section id="dons" className="space-y-4">
+            <div>
+              <h3 className="text-lg font-bold" style={{ color: c.brun }}>📦 Que peut-on donner ?</h3>
+              <p className="text-xs text-stone-500 mt-0.5">Vérifiez en 30 secondes si votre objet convient avant de vous déplacer.</p>
+            </div>
+
+            {/* Acceptés */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-bold" style={{ color: c.vert }}>✔ Nous acceptons</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {criteres.filter(x => x.kind === 'accepte').map(item => (
+                  <div key={item.id} className={`${card} p-3`} style={{ borderLeft: `4px solid ${c.vert}` }}>
+                    <p className="text-sm font-bold text-stone-800">{item.icon} {item.label}</p>
+                    <p className="text-xs text-stone-600 mt-1">{item.detail}</p>
+                    {item.condition && <p className="text-[11px] mt-1.5 font-semibold" style={{ color: c.vertMed }}>Condition : {item.condition}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Refusés */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-bold" style={{ color: c.orange }}>✕ Nous refusons</h4>
+              <div className="rounded-xl p-3" style={{ background: c.orangeCl, border: `1px solid ${c.orange}33` }}>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-stone-700">
+                  {criteres.filter(x => x.kind === 'refuse').map(r => (
+                    <li key={r.id}><strong style={{ color: c.orange }}>✕ {r.label}</strong>{r.detail && ` — ${r.detail}`}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Conditions de dépôt */}
+            <div className={`${card} p-4 space-y-2`}>
+              <h4 className="text-sm font-bold" style={{ color: c.brun }}>📋 Conditions de dépôt</h4>
+              <ol className="text-xs text-stone-700 space-y-1 list-decimal list-inside">
+                {criteres.filter(x => x.kind === 'depot').map(cd => <li key={cd.id}>{cd.detail}</li>)}
+              </ol>
+              {infos && (
+                <div className="text-xs rounded-lg p-2" style={{ background: c.vertClair, color: c.vert }}>
+                  <strong>Déposez aux heures d'ouverture :</strong>{' '}
+                  {infos.horaires.map(h => `${h.jour} ${h.plage}`).join(' · ')}
+                  <br />📍 {infos.adresse}
+                  {infos.fermetures.length > 0 && (
+                    <span className="block mt-1" style={{ color: c.orange }}>
+                      ⚠️ Fermé exceptionnellement : {infos.fermetures.map(f => fmtJour(f.date)).join(', ')}
+                    </span>
+                  )}
                 </div>
-              ))}
+              )}
             </div>
           </section>
         </main>
@@ -679,6 +863,24 @@ export function App() {
                 Enregistrer
               </button>
             </form>
+          )}
+
+          {adminView === 'infos' && (
+            <div className={`${card} p-4 space-y-4 text-xs`}>
+              <div>
+                <h4 className="font-bold text-sm text-stone-800">📦 Critères de dons</h4>
+                <p className="text-stone-500">Ce que les habitants voient sur le site public. Cliquez sur « Éditer la liste » pour ajouter ou retirer des éléments.</p>
+              </div>
+              {([
+                { kind: 'accepte', titre: '✔ Objets acceptés', color: c.vert, itemLabel: 'Ajouter un objet accepté' },
+                { kind: 'refuse', titre: '✕ Objets refusés', color: c.orange, itemLabel: 'Ajouter un objet refusé' },
+                { kind: 'depot', titre: '📋 Conditions de dépôt', color: c.brun, itemLabel: 'Ajouter une condition' },
+              ] as const).map(g => (
+                <CritereGroup key={g.kind} kind={g.kind} titre={g.titre} color={g.color} itemLabel={g.itemLabel}
+                              items={criteres.filter(x => x.kind === g.kind)}
+                              onSave={handleSaveCritere} onDelete={handleDeleteCritere} onAdd={handleAddCritere} inputCls={inputCls} />
+              ))}
+            </div>
           )}
 
           {/* Admin : Supervision & KPIs */}

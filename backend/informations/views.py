@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import InfosRessourcerie, Fermeture
+from .models import InfosRessourcerie, Fermeture, CritereDon
 
 
 # ==============================================================================
@@ -83,4 +83,57 @@ def api_fermeture_detail(request, pk):
         f.delete()
         InfosRessourcerie.get_solo().save()
         return JsonResponse({"status": "deleted"})
+    return JsonResponse({"error": "Method not allowed"}, status=405)
+
+
+# ==============================================================================
+# CRITÈRES DE DONS (PUBLIC EN LECTURE, ÉDITABLES PAR L'ADMIN)
+# ==============================================================================
+
+def _critere_to_dict(c):
+    return {"id": c.id, "kind": c.kind, "icon": c.icon, "label": c.label,
+            "detail": c.detail, "condition": c.condition, "ordre": c.ordre}
+
+
+@csrf_exempt
+def api_criteres(request):
+    if request.method == 'GET':
+        return JsonResponse([_critere_to_dict(c) for c in CritereDon.objects.all()], safe=False)
+
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+            kind = body.get('kind')
+            if kind not in dict(CritereDon.KIND_CHOICES):
+                return JsonResponse({"error": "Type invalide"}, status=400)
+            ordre = CritereDon.objects.filter(kind=kind).count()
+            c = CritereDon.objects.create(
+                kind=kind, icon=body.get('icon', ''), label=body.get('label', ''),
+                detail=body.get('detail', ''), condition=body.get('condition', ''), ordre=ordre)
+            return JsonResponse(_critere_to_dict(c), status=201)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"error": "Method not allowed"}, status=405)
+
+
+@csrf_exempt
+def api_critere_detail(request, pk):
+    c = get_object_or_404(CritereDon, pk=pk)
+
+    if request.method in ['PUT', 'PATCH']:
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+            for field in ('icon', 'label', 'detail', 'condition'):
+                if field in body:
+                    setattr(c, field, str(body[field]).strip())
+            c.save()
+            return JsonResponse(_critere_to_dict(c))
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    if request.method == 'DELETE':
+        c.delete()
+        return JsonResponse({"status": "deleted"})
+
     return JsonResponse({"error": "Method not allowed"}, status=405)
