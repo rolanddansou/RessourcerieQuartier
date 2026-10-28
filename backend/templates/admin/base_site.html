@@ -1,4 +1,10 @@
 {% extends "admin/base_site.html" %}
+{% load static %}
+{% block branding %}
+  <h1 id="site-name"><a href="{% url 'planning-app' %}"><img class="admin-brand-logo" src="{% static 'brand/ressourcerie-logo.webp' %}" alt="La Ressourcerie du Quartier" width="1280" height="427"></a></h1>
+{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'planning/admin-brand.css' %}">{% endblock %}
+{% block extrahead %}{{ block.super }}<link rel="icon" type="image/webp" href="{% static 'brand/ressourcerie-emblem.webp' %}">{% endblock %}
 {% block userlinks %}
   <a href="{% url 'planning-app' %}">Planning</a> /
   {{ block.super }}

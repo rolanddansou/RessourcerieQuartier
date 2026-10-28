@@ -15,6 +15,7 @@ import {
 import { SlotEditor } from './components/SlotEditor'
 import { SlotList } from './components/SlotList'
 import { WeekNavigation } from './components/WeekNavigation'
+import { Brand, BrandEmblem } from './components/Brand'
 
 const pages: Record<Page, { title: string; description: string }> = {
   availability: {
@@ -312,7 +313,8 @@ export function PlanningWorkspace({
       ? [
           {
             value: data?.slots.length ?? 0,
-            label: data?.slots.length === 1 ? 'plage déclarée' : 'plages déclarées',
+            label:
+              data?.slots.length === 1 ? 'plage déclarée' : 'plages déclarées',
             icon: 'calendar' as const,
           },
           {
@@ -322,7 +324,8 @@ export function PlanningWorkspace({
           },
           {
             value: availableDays,
-            label: availableDays === 1 ? 'jour disponible' : 'jours disponibles',
+            label:
+              availableDays === 1 ? 'jour disponible' : 'jours disponibles',
             icon: 'check' as const,
           },
         ]
@@ -330,7 +333,10 @@ export function PlanningWorkspace({
         ? [
             {
               value: availablePeople,
-              label: availablePeople === 1 ? 'bénévole disponible' : 'bénévoles disponibles',
+              label:
+                availablePeople === 1
+                  ? 'bénévole disponible'
+                  : 'bénévoles disponibles',
               icon: 'users' as const,
             },
             {
@@ -340,14 +346,20 @@ export function PlanningWorkspace({
             },
             {
               value: assignments.length,
-              label: assignments.length === 1 ? 'affectation au planning' : 'affectations au planning',
+              label:
+                assignments.length === 1
+                  ? 'affectation au planning'
+                  : 'affectations au planning',
               icon: 'calendar' as const,
             },
           ]
         : [
             {
               value: assignments.length,
-              label: assignments.length === 1 ? 'affectation cette semaine' : 'affectations cette semaine',
+              label:
+                assignments.length === 1
+                  ? 'affectation cette semaine'
+                  : 'affectations cette semaine',
               icon: 'calendar' as const,
             },
             {
@@ -357,7 +369,10 @@ export function PlanningWorkspace({
             },
             {
               value: plannedPeople,
-              label: plannedPeople === 1 ? 'bénévole mobilisé' : 'bénévoles mobilisés',
+              label:
+                plannedPeople === 1
+                  ? 'bénévole mobilisé'
+                  : 'bénévoles mobilisés',
               icon: 'users' as const,
             },
           ]
@@ -369,14 +384,7 @@ export function PlanningWorkspace({
       </a>
       <header className="app-header">
         <div className="header-inner">
-          <div className="brand">
-            <span className="brand-mark">
-              <Icon name="leaf" size={23} />
-            </span>
-            <span>
-              Ressourcerie Quartier<small>Ensemble, au quotidien</small>
-            </span>
-          </div>
+          <Brand />
           <div className="account">
             <span className="avatar" aria-hidden="true">
               {user.name.slice(0, 1).toLocaleUpperCase('fr')}
@@ -401,14 +409,20 @@ export function PlanningWorkspace({
       <main id="main-content" className="workspace-main" tabIndex={-1}>
         <div className="page-heading">
           <div>
-            <p className="eyebrow">L’ESPACE DES BÉNÉVOLES</p>
-            <h1>{pages[page].title}</h1>
+            <p className="eyebrow">LE COIN DES BÉNÉVOLES</p>
+            <h1>
+              <span className="title-paper">{pages[page].title}</span>
+            </h1>
             <p className="page-description">{pages[page].description}</p>
           </div>
-          <span className="community-label">
-            <span />
-            Chaque présence compte
-          </span>
+          <div className="hero-collage" aria-hidden="true">
+            <BrandEmblem />
+            <span className="community-label">
+              Chaque présence
+              <br />
+              <strong>compte !</strong>
+            </span>
+          </div>
         </div>
         <nav className="page-nav" aria-label="Espace planning">
           {volunteer && (

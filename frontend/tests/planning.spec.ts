@@ -275,6 +275,16 @@ test('création, affectation et publication avec retours de succès', async ({
 }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 1000 })
   await setup(page, { admin: true })
+  await expect(
+    page.getByRole('img', { name: 'La Ressourcerie du Quartier', exact: true }),
+  ).toBeVisible()
+  await expect
+    .poll(() =>
+      page
+        .locator('.header-logo')
+        .evaluate((image: HTMLImageElement) => image.naturalWidth),
+    )
+    .toBe(1280)
   await page
     .getByRole('button', { name: 'Gestion du planning', exact: true })
     .click()
@@ -299,6 +309,7 @@ test('création, affectation et publication avec retours de succès', async ({
   await expect(
     page.getByRole('button', { name: 'Dépublier', exact: true }),
   ).toBeVisible()
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
   await page.screenshot({
     path: testInfo.outputPath('admin.png'),
     fullPage: true,
